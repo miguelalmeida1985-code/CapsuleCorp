@@ -1,5 +1,6 @@
 <script module>
   import { find } from '../lib/octopus.js';
+  import { foxess, fillBlanks } from '../lib/foxess.js';
   const first = (...res) => { for (const re of res) { const id = find(re); if (id) return id; } return ''; };
   export const meta = {
     type: 'solar', name: 'Solar', icon: 'mdi:solar-power-variant', category: 'Energy',
@@ -9,8 +10,8 @@
       { key: 'now', label: 'Generating now' }, { key: 'vs', label: 'Above / below forecast' }, { key: 'today', label: 'Today vs forecast' },
       { key: 'chart', label: "Today's curve" }, { key: 'split', label: 'Where it’s going' }, { key: 'tomorrow', label: 'Tomorrow' }, { key: 'week', label: 'Next days' },
     ],
-    // SolarEdge / generic names for the readings; Solcast or Forecast.Solar for the forecast.
-    autofill: () => ({
+    // SolarEdge / Fox ESS / generic names for the readings; Solcast or Forecast.Solar for the forecast.
+    autofill: () => fillBlanks({
       power: first(/^sensor\.solar_panel_production_w$/, /^sensor\.solaredge_(i\d_)?ac_power$/, /^sensor\.solar_production_w$/, /^sensor\.[a-z0-9_]*(pv|solar)_power$/),
       today: first(/^sensor\.solar_panel_production_daily$/, /^sensor\.[a-z0-9_]*(pv|solar)_(energy|production|generation)_(today|daily)$/),
       forecast: first(/^sensor\.solcast_pv_forecast_forecast_today$/, /^sensor\.energy_production_today(_\d+)?$/),
@@ -19,7 +20,7 @@
       to_house: first(/^sensor\.solar_panel_to_house_w$/),
       to_battery: first(/^sensor\.solar_panel_to_battery_w$/),
       to_grid: first(/^sensor\.solar_panel_to_grid_w$/),
-    }),
+    }, (({ solar, solar_today }) => ({ power: solar, today: solar_today }))(foxess())),
     // Solcast's next-days sensors sit beside "forecast today".
     watch: (p) => { const b = String(p.forecast || '').match(/^(sensor\.solcast_.*_forecast)_today$/)?.[1]; return b ? [3, 4, 5, 6, 7].map((d) => `${b}_day_${d}`) : []; },
     fields: [

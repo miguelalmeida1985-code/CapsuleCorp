@@ -1,5 +1,6 @@
 <script module>
   import { find } from '../lib/octopus.js';
+  import { foxess, fillBlanks } from '../lib/foxess.js';
   // Left blank, the battery power comes from SolarEdge's battery sensor if there is one.
   const SE_BATT = ['sensor.solaredge_b1_dc_power', 'sensor.solaredge_i1_b1_dc_power'];
   const first = (...res) => { for (const re of res) { const id = find(re); if (id) return id; } return ''; };
@@ -11,7 +12,7 @@
     sections: [{ key: 'self', label: 'Self-powered %' }, { key: 'tiles', label: 'Solar / battery / house figures' }, { key: 'flow', label: 'Flow chart' }, { key: 'grid', label: 'Grid', section: 'grid' }, { key: 'battery', label: 'Battery', section: 'battery' }],
     // Totals plus, where the integration has them, a sensor for each route
     // (solar→house etc.). Without route sensors the routes are worked out.
-    autofill: () => ({
+    autofill: () => fillBlanks({
       solar: first(/^sensor\.solar_panel_production_w$/, /^sensor\.solaredge_(i\d_)?ac_power$/, /^sensor\.solar_production_w$/),
       home: first(/^sensor\.solar_house_consumption_w$/, /^sensor\.house_power$/),
       battery_soc: first(/^sensor\.solaredge_(i\d_)?b\d_state_of_energy$/, /^sensor\.battery_level$/),
@@ -26,7 +27,7 @@
       battery_grid: first(/^sensor\.solar_battery_to_grid_w$/),
       grid_home: first(/^sensor\.solar_grid_to_house_w$/),
       grid_battery: first(/^sensor\.solar_grid_to_battery_w$/),
-    }),
+    }, (({ solar, home, grid_import, grid_export, battery, battery_soc }) => ({ solar, home, grid_import, grid_export, battery, battery_soc }))(foxess())),
     fields: [
       { key: 'name', label: 'Title', type: 'text' },
       { key: 'solar', label: 'Solar power', type: 'entity', domain: 'sensor' },

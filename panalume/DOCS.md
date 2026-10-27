@@ -25,6 +25,10 @@ Added from **Add → Energy**; entities are auto-detected for the Octopus Energy
 - **Electric vehicle** — battery ring vs target, range, charging, plug/lock, climate.
 - **Power flow** — solar / grid / battery / home / EV.
 
+**Fox ESS** inverters (H1, H3, KH…) are detected too, from the local `foxess_modbus` integration or the FoxESS cloud one: Solar, Energy flow, Power flow and Home battery fill in PV power, house load, grid in/out and the battery with the right signs.
+
+**Water heater** (Add → Controls) — a glass tank filled to the water temperature that glows and bubbles while heating, with the target − / +, operation modes and on / off. For Ariston (Velis, Lydos…) it also finds the showers available, eco mode and the heating and anti-legionella sensors.
+
 ## Import from ha-fusion
 
 Edit → **Layout → Import from ha-fusion** rebuilds the dashboard from your ha-fusion app: views, rooms, buttons (their state / name / icon / colour / service templates keep working, including `entity_id`), cameras and sidebar items, with tablet, phone and desktop layouts. An **Energy** view is added from auto-detected Octopus / myenergi / solar / EV entities. Icons from other sets (`tabler:`, `mingcute:`, `solar:` …) load from Iconify.

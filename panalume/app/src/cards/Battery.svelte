@@ -1,5 +1,6 @@
 <script module>
   import { find } from '../lib/octopus.js';
+  import { foxess, fillBlanks } from '../lib/foxess.js';
   export const meta = {
     type: 'battery', name: 'Home battery', icon: 'mdi:home-battery', category: 'Energy',
     size: { w: 400, h: 260 }, tap: 'none', hold: 'more-info',
@@ -8,8 +9,8 @@
       { key: 'gauge', label: 'Battery' }, { key: 'kwh', label: 'kWh remaining' }, { key: 'power', label: 'Power' }, { key: 'time', label: 'Time to full / empty' },
       { key: 'status', label: 'Status' }, { key: 'health', label: 'Health' }, { key: 'temp', label: 'Temperature' }, { key: 'today', label: 'Today in / out' }, { key: 'graph', label: '24h graph' },
     ],
-    // SolarEdge Modbus Multi naming; any battery integration can be picked by hand.
-    autofill: () => ({
+    // SolarEdge Modbus Multi or Fox ESS naming; any battery integration can be picked by hand.
+    autofill: () => fillBlanks({
       soc: find(/^sensor\.solaredge_(i\d_)?b\d_state_of_energy$/),
       capacity: find(/^sensor\.solaredge_(i\d_)?b\d_available_energy$/) || find(/^sensor\.solaredge_(i\d_)?b\d_maximum_energy$/),
       power: find(/^sensor\.solaredge_(i\d_)?b\d_dc_power$/),
@@ -18,7 +19,9 @@
       temp: find(/^sensor\.solaredge_(i\d_)?b\d_average_temperature$/),
       in_today: find(/^sensor\.[a-z0-9_]*battery_in_daily$/),
       out_today: find(/^sensor\.[a-z0-9_]*battery_out_daily$/),
-    }),
+    }, (({ battery, battery_soc, battery_soh, battery_temp, charge_today, discharge_today }) =>
+      // Fox ESS battery power is + discharging; this card wants + charging.
+      ({ soc: battery_soc, power: battery, power_invert: !!battery, health: battery_soh, temp: battery_temp, in_today: charge_today, out_today: discharge_today }))(foxess())),
     fields: [
       { key: 'name', label: 'Name', type: 'text' },
       { key: 'soc', label: 'State of charge (%)', type: 'entity', domain: 'sensor', section: 'gauge' },

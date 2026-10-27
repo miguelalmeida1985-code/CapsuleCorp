@@ -1,8 +1,14 @@
 <script module>
+  import { foxess } from '../lib/foxess.js';
   export const meta = {
     type: 'powerflow', name: 'Power flow', icon: 'mdi:home-lightning-bolt', category: 'Energy',
     size: { w: 340, h: 340 }, tap: 'none',
     defaults: { unit: 'W' },
+    // Fox ESS fills itself in; other inverters are picked by hand.
+    autofill: () => {
+      const f = foxess();
+      return f.solar ? { solar: f.solar, grid: f.grid || '', grid_invert: !!(f.grid && f.grid_positive_export), battery: f.battery || '', battery_soc: f.battery_soc, home: f.home } : {};
+    },
     sections: [{ key: 'solar', label: 'Solar', section: 'solar' }, { key: 'grid', label: 'Grid', section: 'grid' }, { key: 'battery', label: 'Battery', section: 'battery' }, { key: 'ev', label: 'EV', section: 'ev' }, { key: 'home', label: 'Home', section: 'home' }, { key: 'appliances', label: 'Appliances', section: 'appliances' }, { key: 'flows', label: 'Flow lines' }],
     fields: [
       { key: 'solar', label: 'Solar power', type: 'entity', domain: 'sensor' },
