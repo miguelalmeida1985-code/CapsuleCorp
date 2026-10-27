@@ -1,3 +1,9 @@
+<p align="center"><img src="panalume/app/public/capsule.png" alt="CapsuleOS" width="160"></p>
+
+<p align="center"><b>CapsuleOS</b> is the Capsule Corp home dashboard: a fork of <a href="https://github.com/leacho73/panalume">Panalume</a> with its own name, cards and look. Install it in Home Assistant from <b>Settings → Apps → App Store → ⋮ → Repositories</b> with <code>https://github.com/miguelalmeida1985-code/CapsuleCorp</code>. Everything below is Panalume's original documentation.</p>
+
+---
+
 <p align="center"><img src="panalume/logo.png" alt="Panalume" width="250"></p>
 
 <p align="center"><a href="https://github.com/leacho73/panalume/releases"><img src="https://img.shields.io/github/v/release/leacho73/panalume?include_prereleases&label=beta&color=7aa2ff" alt="Latest beta"></a></p>

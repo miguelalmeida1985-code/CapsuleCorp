@@ -43,7 +43,7 @@ jobs:
           # This version's section of the changelog, without its heading.
           awk -v v="## $V" '$0 == v { f = 1; next } /^## / && f { exit } f' panalume/CHANGELOG.md > notes.md
           if [ ! -s notes.md ]; then echo "- See CHANGELOG.md" > notes.md; fi
-          printf '\n---\nUpdate from **Settings → Apps → Panalume** in Home Assistant. Full history: [CHANGELOG.md](https://github.com/%s/blob/main/panalume/CHANGELOG.md)\n' "$GITHUB_REPOSITORY" >> notes.md
+          printf '\n---\nUpdate from **Settings → Apps → CapsuleOS** in Home Assistant. Full history: [CHANGELOG.md](https://github.com/%s/blob/main/panalume/CHANGELOG.md)\n' "$GITHUB_REPOSITORY" >> notes.md
           # Until 1.0, every release is a beta (pre-release).
-          case "$V" in 0.*) PRE=--prerelease; TITLE="Panalume $V (beta)" ;; *) PRE=--latest; TITLE="Panalume $V" ;; esac
+          case "$V" in 0.*) PRE=--prerelease; TITLE="CapsuleOS $V (beta)" ;; *) PRE=--latest; TITLE="CapsuleOS $V" ;; esac
           gh release create "v$V" --target "$GITHUB_SHA" --title "$TITLE" --notes-file notes.md $PRE
