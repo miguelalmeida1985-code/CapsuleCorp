@@ -1,8 +1,8 @@
 # Changelog
 
-## 0.36.0-cos.1
+## 0.1.0
 
-- **CapsuleOS.** The app is now CapsuleOS: its own name, Capsule Corp logo and icon in Home Assistant, and a start screen with the logo while it connects. Built on Panalume 0.36.0.
+- **CapsuleOS.** First CapsuleOS version: its own name, Capsule Corp logo and icon in Home Assistant, and a start screen with the logo while it connects. Built on Panalume 0.36.0; CapsuleOS versions count from here.
 
 ## 0.36.0
 
