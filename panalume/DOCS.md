@@ -10,6 +10,8 @@ Open **Panalume** in the HA sidebar. Press the faint pencil (top-right) or **E**
 - **Show / hide parts** of bigger cards (EV, Octopus, heat pump…) with the chips at the top of Content or the eye next to each field.
 - **Theme**: colours, fonts (Google Fonts URL), card glass/blur (set blur 0 on slow tablets), global CSS.
 
+**TV** — add `?tv` to the address (e.g. in a kiosk app on an Android TV). The remote's arrows move a glowing highlight to the nearest card or button, OK presses it, Back closes pop-ups and the views menu. Blur is off on TVs to keep them smooth (`?effects=full` turns it back on); `?effects=lite` turns blur off on any slow screen. A TV can't be edited.
+
 Config is stored in the app's `/data/dashboard.json` (Layout → Export for a backup).
 
 ## Energy cards
