@@ -10,6 +10,8 @@ Open **Panalume** in the HA sidebar. Press the faint pencil (top-right) or **E**
 - **Show / hide parts** of bigger cards (EV, Octopus, heat pump…) with the chips at the top of Content or the eye next to each field.
 - **Theme**: colours, fonts (Google Fonts URL), card glass/blur (set blur 0 on slow tablets), global CSS.
 
+**Version** — every screen shows the version it's running in the bottom-left corner (`?noversion` hides it; a kiosk app can add its own with `?app_version=1.2.0`). After an update in Home Assistant every open screen reloads itself within seconds; one that's mid-edit shows `v0.1.0 → v0.2.0` in amber and reloads when the edit is done.
+
 Config is stored in the app's `/data/dashboard.json` (Layout → Export for a backup).
 
 ## Energy cards

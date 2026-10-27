@@ -9,6 +9,7 @@ import crypto from 'node:crypto';
 import { WebSocketServer, WebSocket } from 'ws';
 import * as mdi from '@mdi/js';
 import { fusionDashboard } from './fusion.js';
+import { appVersion } from './version.js';
 
 const PORT = Number(process.env.PORT || 8099);
 const SUP = process.env.SUPERVISOR_TOKEN;
@@ -134,6 +135,7 @@ const wss = new WebSocketServer({ noServer: true, perMessageDeflate: true });
 // Live channel: tells every open screen when the layout is saved (so it reloads
 // it) and which build is running (so screens reload after an add-on update).
 const BUILD = fs.existsSync(path.join(DIST, 'index.html')) ? crypto.createHash('sha1').update(fs.readFileSync(path.join(DIST, 'index.html'))).digest('hex').slice(0, 12) : 'dev';
+const VERSION = appVersion();
 const live = new WebSocketServer({ noServer: true });
 function broadcast(msg) {
   const data = JSON.stringify(msg);
@@ -232,7 +234,7 @@ server.on('upgrade', (req, socket, head) => {
     return cams.handleUpgrade(req, socket, head, (ws) => camStream(ws, entity));
   }
   if (req.url.split('?')[0].endsWith('/api/live')) {
-    return live.handleUpgrade(req, socket, head, (ws) => ws.send(JSON.stringify({ type: 'hello', build: BUILD })));
+    return live.handleUpgrade(req, socket, head, (ws) => ws.send(JSON.stringify({ type: 'hello', build: BUILD, version: VERSION })));
   }
   if (!req.url.split('?')[0].endsWith('/api/websocket')) return socket.destroy();
   wss.handleUpgrade(req, socket, head, (client) => {

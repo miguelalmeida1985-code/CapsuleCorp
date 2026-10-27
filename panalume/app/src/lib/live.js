@@ -2,7 +2,7 @@
 // and reload the page when the add-on has been updated to a new build.
 export const clientId = Math.random().toString(36).slice(2);
 
-export function connectLive({ onConfig, canReload }) {
+export function connectLive({ onConfig, canReload, onVersion }) {
   let build = null;
   let backoff = 1000;
   let first = true;
@@ -18,6 +18,7 @@ export function connectLive({ onConfig, canReload }) {
         backoff = 1000;
         if (build && msg.build !== build && canReload()) return location.reload();
         build = msg.build;
+        onVersion?.(msg.version);
         // After a reconnect we may have missed a save.
         if (!first) onConfig();
         first = false;
