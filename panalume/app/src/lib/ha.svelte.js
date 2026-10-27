@@ -1,7 +1,7 @@
 // Home Assistant websocket client. Talks to our own server's /api/websocket,
 // which authenticates on our behalf. Entity state lives in a SvelteMap so each
 // card only re-renders when the entities it reads change.
-import { SvelteMap } from 'svelte/reactivity';
+import { SvelteMap, createSubscriber } from 'svelte/reactivity';
 
 export const states = new SvelteMap();
 export const templates = new SvelteMap();
@@ -123,22 +123,59 @@ export function watchEntities(ids) {
 }
 
 // ---- templates ----
-const tplSubs = new Set();
-/** Live-rendered HA template result (reactive). Subscribes on first use. */
+// Each template is one render_template subscription in Home Assistant, re-rendered
+// on every relevant state change. It's kept while a card on screen reads it and
+// closed shortly after the last one goes (another view, a deleted card, the
+// half-typed templates the editor makes as you type), so a wall tablet left
+// running for months doesn't pile them up. A read outside a card (a tap action)
+// keeps it a minute.
+const tpls = new Map();
+const IDLE_MS = 60e3;
+
+function tplEntry(key, msg) {
+  let e = tpls.get(key);
+  if (e) return e;
+  e = { on: false, stop: null, tracked: false, idle: 0 };
+  const open = () => {
+    if (e.on) return;
+    e.on = true;
+    queueMicrotask(() => {
+      if (e.on && !e.stop) e.stop = subscribe(msg, (ev) => templates.set(key, ev.error ? `⚠ ${ev.error}` : ev.result));
+    });
+  };
+  e.close = () => {
+    if (e.tracked || e.idle) return;
+    e.on = false;
+    e.stop?.();
+    tpls.delete(key);
+    templates.delete(key);
+  };
+  e.track = createSubscriber(() => {
+    e.tracked = true;
+    open();
+    return () => { e.tracked = false; e.close(); };
+  });
+  e.touch = () => {
+    open();
+    clearTimeout(e.idle);
+    e.idle = setTimeout(() => { e.idle = 0; e.close(); }, IDLE_MS);
+  };
+  tpls.set(key, e);
+  return e;
+}
+
 export function renderTemplate(tpl, variables) {
   const key = variables ? tpl + '\u0000' + JSON.stringify(variables) : tpl;
-  if (!tplSubs.has(key)) {
-    tplSubs.add(key);
-    const msg = { type: 'render_template', template: tpl, report_errors: true };
-    if (variables) msg.variables = variables;
-    queueMicrotask(() =>
-      subscribe(msg, (ev) => {
-        templates.set(key, ev.error ? `⚠ ${ev.error}` : ev.result);
-      }),
-    );
-  }
+  const msg = { type: 'render_template', template: tpl, report_errors: true };
+  if (variables) msg.variables = variables;
+  const e = tplEntry(key, msg);
+  if ($effect.tracking()) e.track();
+  else e.touch();
   return templates.get(key);
 }
+
+/** How many template subscriptions are open (for tests and the browser console). */
+export const openTemplates = () => tpls.size;
 
 export function callService(domain, service, data = {}, target) {
   const msg = { type: 'call_service', domain, service, service_data: data };

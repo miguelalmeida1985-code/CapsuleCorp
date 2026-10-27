@@ -89,12 +89,14 @@
     holdTimer = null;
     if (!held && !editing) run('tap');
   }
+  // Blur 0 on this card: no backdrop filter at all, so the browser needn't keep a layer for it.
+  const flat = $derived(String(t(s.blur, vars) ?? '').trim().replace(/px$/, '') === '0');
   const tappable = $derived(!editing && ((card.tap?.action && card.tap.action !== 'none') || (!card.tap?.action && def?.meta.tap !== 'none')));
 </script>
 
 {#if visible || editing}
   {#if cssParts.rules}{@html `<style>${cssParts.rules}</style>`}{/if}
-  <div role="presentation" data-card={card.id} class="card {card.type}" class:tappable class:hidden={!visible} class:popup={inPopup} {style}
+  <div role="presentation" data-card={card.id} class="card {card.type}" class:tappable class:noblur={flat} class:hidden={!visible} class:popup={inPopup} {style}
     onpointerdown={down} onpointermove={move} onpointerup={up} onpointercancel={() => clearTimeout(holdTimer)}>
     <div class="content" style="zoom:{z};{inPopup ? 'width:100%;height:100%' : `width:${w / z}px;height:${h / z}px`}">
       {#if def}
@@ -119,6 +121,7 @@
   }
   .content { position: relative; box-sizing: border-box; padding: var(--pad); border-radius: inherit; }
   .card.popup { position: relative; inset: auto; height: 100%; }
+  .card.noblur { backdrop-filter: none; -webkit-backdrop-filter: none; }
   .tappable { cursor: pointer; }
   .tappable:active { transform: scale(.97); }
   .hidden { opacity: .35; outline: 1px dashed rgba(255,255,255,.4); }
