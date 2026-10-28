@@ -47,7 +47,6 @@
   });
   const pv = $derived(Math.max(0, Math.min(1, kw / (Number(props.solar_max) || 5))));
   const placing = $derived(editing && !!props.place_pins);
-  const uid = $props.id();
   const area = $derived.by(() => {
     const pts = String(props.solar_area || '').trim().split(/\s+/).map((p) => p.split(',').map(Number)).filter((p) => p.length === 2 && p.every(Number.isFinite));
     return pts.length >= 3 ? pts : placing && props.solar ? [[40, 20], [60, 18], [60, 28], [40, 30]] : [];
@@ -107,16 +106,15 @@
     <div class="glow"></div>
 
     {#if area.length && (kw > 0.05 || placing)}
-      <svg class="pv" viewBox="0 0 100 100" preserveAspectRatio="none" style="--pv:{pv};--dur:{(4.2 - pv * 2.6).toFixed(1)}s" aria-hidden="true">
-        <defs>
-          <clipPath id="pv-{uid}"><polygon points={area.map((p) => p.join(',')).join(' ')} /></clipPath>
-          <linearGradient id="pvb-{uid}" x1="0" x2="1"><stop offset="0" stop-color="#fff" stop-opacity="0" /><stop offset=".5" stop-color="#fff6d8" stop-opacity=".9" /><stop offset="1" stop-color="#fff" stop-opacity="0" /></linearGradient>
-        </defs>
-        <polygon class="pv-glow" points={area.map((p) => p.join(',')).join(' ')} />
-        <g clip-path="url(#pv-{uid})">
-          <rect class="pv-band" x={bbox.x0 - (bbox.x1 - bbox.x0) * 0.35} y={bbox.y0 - 2} width={(bbox.x1 - bbox.x0) * 0.3} height={bbox.y1 - bbox.y0 + 4} fill="url(#pvb-{uid})" style="--run:{(bbox.x1 - bbox.x0) * 1.7}px" />
-        </g>
-      </svg>
+      <!-- Plain boxes animated by opacity and transform only, so the GPU runs the
+           shimmer without repainting the picture every frame. -->
+      {@const clip = `clip-path:polygon(${area.map((p) => `${p[0]}% ${p[1]}%`).join(',')})`}
+      <div class="pv" style="--pv:{pv};--dur:{(4.2 - pv * 2.6).toFixed(1)}s" aria-hidden="true">
+        <div class="pv-glow"><div class="pv-soft"><div class="pv-fill" style={clip}></div></div></div>
+        <div class="pv-shine" style={clip}>
+          <div class="pv-band" style="left:{bbox.x0 - (bbox.x1 - bbox.x0) * 0.35}%;top:{bbox.y0 - 2}%;width:{(bbox.x1 - bbox.x0) * 0.3}%;height:{bbox.y1 - bbox.y0 + 4}%"></div>
+        </div>
+      </div>
       {#if placing}
         {#each area as p, i}
           <div class="corner" style="left:{p[0]}%;top:{p[1]}%" role="button" tabindex="-1" onpointerdown={(ev) => grab(ev, { corner: i })}></div>
@@ -147,11 +145,16 @@
   .dark .glow { opacity: 0; }
   .empty { position: absolute; inset: 0; display: grid; place-content: center; justify-items: center; gap: 8px; color: var(--muted); text-align: center; padding: 20px; }
 
-  .pv { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none; mix-blend-mode: screen; }
-  .pv-glow { fill: #ffb84d; opacity: calc(.12 + var(--pv) * .3); filter: blur(1.2px); animation: pvpulse 2.6s ease-in-out infinite; }
-  .pv-band { animation: pvsweep var(--dur) linear infinite; }
-  @keyframes pvpulse { 50% { opacity: calc(.06 + var(--pv) * .16); } }
-  @keyframes pvsweep { from { transform: translateX(0); } to { transform: translateX(var(--run)); } }
+  .pv, .pv-glow, .pv-soft, .pv-fill, .pv-shine { position: absolute; inset: 0; pointer-events: none; }
+  .pv { mix-blend-mode: screen; }
+  /* The glow is drawn (and blurred) once; only its opacity pulses. */
+  .pv-glow { animation: pvpulse 2.6s ease-in-out infinite; }
+  .pv-soft { filter: blur(6px); }
+  .pv-fill { background: rgb(255 184 77 / calc(.12 + var(--pv) * .3)); }
+  .pv-band { position: absolute; background: linear-gradient(90deg, rgba(255,255,255,0), rgba(255,246,216,.9), rgba(255,255,255,0)); animation: pvsweep var(--dur) linear infinite; will-change: transform; }
+  @keyframes pvpulse { 50% { opacity: .5; } }
+  /* The band travels 1.7× the panels' width, which is 1.7 / 0.3 of its own. */
+  @keyframes pvsweep { from { transform: translateX(0); } to { transform: translateX(566.7%); } }
   .corner { position: absolute; width: 16px; height: 16px; margin: -8px 0 0 -8px; border-radius: 50%; background: #ffb84d; border: 2px solid #fff; cursor: grab; touch-action: none; z-index: 5; }
 
   .pin { position: absolute; width: 0; height: 0; z-index: 3; }
