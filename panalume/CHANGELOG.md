@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.3.0
+
+- **The hall dashboard look.** CapsuleOS now looks the way it was designed: a night background, frosted glass cards, Sora for numbers and titles and Figtree for text, with warm glows for the lights and the sun and cool ones for climate. **Reset theme** in the editor brings it back.
+- **House card: night sky.** Stars over the house, a warm glow that breathes while the outdoor lights are on, a Solar label over the panels and a second line on every label (mode and target, "A aquecer", battery or Online, or your own text).
+- **New cards.** **Cameras** (live, one big and two to a row, with the battery or "Ao vivo", and the doorbell glowing when it rings), **Energy now** (production, where it goes and today's curve with the forecast, filled in for Fox ESS), **Scenes**, **Air conditioners** and **Device list**.
+- The clock, weather, tabs and water heater have the same look, and the cards' own words follow Home Assistant's language.
+
 ## 0.2.0
 
 - **House card.** The hall's picture of the house with live labels floating over it, the outdoor lights shown on or off as they really are, and the solar panels shimmering while they produce. The shimmer now runs on the GPU, so it costs a cheap tablet far less.
