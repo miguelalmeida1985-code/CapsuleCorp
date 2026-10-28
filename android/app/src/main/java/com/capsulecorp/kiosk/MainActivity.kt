@@ -20,6 +20,7 @@ import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
 import android.view.WindowInsets
 import android.view.WindowInsetsController
 import android.view.WindowManager
+import android.webkit.CookieManager
 import android.webkit.RenderProcessGoneDetail
 import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
@@ -98,6 +99,25 @@ class MainActivity : Activity() {
         if (hasFocus) hideSystemBars()
     }
 
+    // A screen that's off or behind another app stops running the page's scripts and animations.
+    override fun onStart() {
+        super.onStart()
+        web.onResume()
+        web.resumeTimers()
+    }
+
+    override fun onStop() {
+        web.onPause()
+        web.pauseTimers()
+        super.onStop()
+    }
+
+    override fun onPause() {
+        super.onPause()
+        // Keep the direct-access cookie on disk, so a power cut doesn't ask for ?key= again.
+        CookieManager.getInstance().flush()
+    }
+
     override fun onDestroy() {
         handler.removeCallbacksAndMessages(null)
         web.destroy()
@@ -106,6 +126,7 @@ class MainActivity : Activity() {
 
     @SuppressLint("SetJavaScriptEnabled")
     private fun createWebView() = WebView(this).apply {
+        CookieManager.getInstance().setAcceptCookie(true)
         setBackgroundColor(getColor(R.color.background))
         isFocusable = true
         isFocusableInTouchMode = true

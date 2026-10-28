@@ -14,6 +14,7 @@
     <string name="extra_hint">effects=lite&amp;fit=screen</string>
     <string name="pin_label">PIN das definições</string>
     <string name="pin_help">Pedido para abrir estas definições. Deixe vazio para não pedir.</string>
+    <string name="pin_warning">Com o modo kiosk ligado, defina um PIN: sem ele, qualquer pessoa que descubra os 5 toques pode sair da app.</string>
     <string name="child_lock_label">Botão de bloqueio para criança (tablet)</string>
     <string name="kiosk_label">Modo kiosk (fixar a app no ecrã)</string>
     <string name="kiosk_help_owner">Device Owner ativo: a app fica presa no ecrã e é o ecrã inicial.</string>

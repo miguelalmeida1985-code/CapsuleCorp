@@ -25,7 +25,8 @@ adb install -r CapsuleOS-0.1.0.apk
 ```
 
 Open **CapsuleOS**, enter the dashboard's address (e.g. `http://192.168.1.10:8099/`,
-the add-on's direct port) and save. Leave the mode on **Automatic**: it picks TV on a
+the add-on's direct port) and save. If the add-on has a *Direct access key*, add it
+once: `http://192.168.1.10:8099/?key=…`. The app keeps the cookie it gets back. Leave the mode on **Automatic**: it picks TV on a
 TV and tablet otherwise.
 
 **Settings later:** five quick taps in the top-right corner (tablet), or five quick

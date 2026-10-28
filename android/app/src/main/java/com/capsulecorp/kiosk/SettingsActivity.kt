@@ -3,6 +3,8 @@ package com.capsulecorp.kiosk
 import android.app.Activity
 import android.app.AlertDialog
 import android.os.Bundle
+import android.text.Editable
+import android.text.TextWatcher
 import android.view.View
 import android.widget.Button
 import android.widget.CheckBox
@@ -41,6 +43,19 @@ class SettingsActivity : Activity() {
         childLock.isChecked = prefs.childLock
         kiosk.isChecked = prefs.kiosk
         findViewById<TextView>(R.id.kiosk_help).setText(if (owner) R.string.kiosk_help_owner else R.string.kiosk_help_pinning)
+
+        // Without a PIN, anyone who finds the corner taps can leave kiosk mode.
+        val pinWarning = findViewById<TextView>(R.id.pin_warning)
+        fun updatePinWarning() {
+            pinWarning.visibility = if (kiosk.isChecked && pin.text.isBlank()) View.VISIBLE else View.GONE
+        }
+        updatePinWarning()
+        kiosk.setOnCheckedChangeListener { _, _ -> updatePinWarning() }
+        pin.addTextChangedListener(object : TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: Editable?) = updatePinWarning()
+        })
 
         findViewById<Button>(R.id.save).setOnClickListener {
             prefs.url = url.text.toString()
