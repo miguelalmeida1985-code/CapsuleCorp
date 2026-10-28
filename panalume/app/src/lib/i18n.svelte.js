@@ -6,10 +6,13 @@ import { send } from './ha.svelte.js';
 
 let words = $state.raw({});
 let loaded = '';
+/** Home Assistant's language, for CapsuleOS's own card words (see say()). */
+const ui = $state({ code: '' });
 
 /** Load Home Assistant's state translations for a language (English needs none). */
 export function loadTranslations(lang) {
   lang = String(lang || '');
+  ui.code = lang;
   if (!lang || /^en\b/.test(lang) || loaded === lang) return;
   loaded = lang;
   send({ type: 'frontend/get_translations', language: lang, category: 'entity_component' })
@@ -29,3 +32,7 @@ export function attrWord(domain, attr, value) {
   if (value == null || value === '') return undefined;
   return words[`component.${domain}.entity_component._.state_attributes.${attr}.state.${value}`];
 }
+
+/** CapsuleOS's own card words in Home Assistant's language: say('Charging', 'A carregar').
+ *  Portuguese when Home Assistant is in Portuguese, English otherwise. */
+export const say = (en, pt) => (/^pt\b/.test(ui.code) ? pt : en);

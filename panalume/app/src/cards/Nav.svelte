@@ -35,8 +35,9 @@
   .horizontal { flex-direction: row; align-items: center; }
   button { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border-radius: 14px; border: 0; background: none; color: var(--muted); font: inherit; font-weight: 500; text-align: left; white-space: nowrap; transition: all .2s; }
   .horizontal { gap: 2px; }
-  .horizontal button { flex: 1 1 0; min-width: 0; justify-content: center; gap: 6px; padding: 10px 6px; font-size: .9em; }
+  .horizontal button { flex: 1 1 0; min-width: 0; justify-content: center; gap: 8px; padding: 10px 8px; border-radius: 13px; font-size: .9em; }
   .horizontal button span { overflow: hidden; text-overflow: ellipsis; }
-  button.sel { background: color-mix(in srgb, var(--accent) 18%, transparent); color: var(--text); }
-  button.sel :global(svg) { color: var(--accent); }
+  button.sel { color: #fff; background: linear-gradient(180deg, rgba(92,160,255,.38), rgba(60,110,220,.22)); box-shadow: inset 0 1px 0 rgba(255,255,255,.22), 0 0 0 1px rgba(110,170,255,.35), 0 6px 22px -6px rgba(80,150,255,.7); }
+  button.sel :global(svg) { color: #fff; filter: drop-shadow(0 0 6px rgba(160,200,255,.9)); }
+  button:not(.sel):hover { color: var(--text); }
 </style>

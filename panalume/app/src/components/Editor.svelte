@@ -80,6 +80,7 @@
     { key: 'cardScale', label: 'Card content size %', type: 'number', hint: 'Makes everything inside every card bigger or smaller.' },
     { key: 'cardBlur', label: 'Card glass blur', type: 'number', hint: 'How much the page background blurs behind cards (frosted glass). 0 turns it off, which is fastest on older tablets.' },
     { key: 'font', label: 'Font family', type: 'text' },
+    { key: 'display', label: 'Font for numbers and titles', type: 'text' },
     { key: 'fontUrl', label: 'Font stylesheet URL (e.g. Google Fonts)', type: 'text' },
     { key: 'customCss', label: 'Custom CSS (global)', type: 'textarea' },
   ];

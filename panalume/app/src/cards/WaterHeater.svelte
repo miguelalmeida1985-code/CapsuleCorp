@@ -24,7 +24,7 @@
     autofill,
     sections: [{ key: 'tank', label: 'Tank' }, { key: 'target', label: 'Target − / +' }, { key: 'modes', label: 'Modes' }, { key: 'showers', label: 'Showers', section: 'showers' }, { key: 'eco', label: 'Eco', section: 'eco' }, { key: 'power', label: 'On / off', section: 'power' }],
     fields: [
-      { key: 'title', label: 'Title', type: 'text' },
+      { key: 'title', label: 'Title (- hides it)', type: 'text' },
       { key: 'entity', label: 'Water heater', type: 'entity', domain: 'water_heater' },
       { key: 'heating', label: 'Heating now (blank = below target)', type: 'entity', domain: 'binary_sensor' },
       { key: 'showers', label: 'Showers available', type: 'entity', domain: 'sensor' },
@@ -42,9 +42,10 @@
   import Icon from '../components/Icon.svelte';
   import { t, ent } from '../lib/tpl.js';
   import { callService } from '../lib/ha.svelte.js';
-  import { stateWord } from '../lib/i18n.svelte.js';
+  import CardTitle from '../components/CardTitle.svelte';
+  import { stateWord, say } from '../lib/i18n.svelte.js';
   import { formatNumber, isActive, toggle } from '../lib/entity.js';
-  let { props, w = 400 } = $props();
+  let { props } = $props();
   const show = (k) => !props.hide?.[k];
   const e = $derived(ent(props.entity));
   const a = $derived(e?.attributes || {});
@@ -73,42 +74,43 @@
   const showers = $derived(ent(props.showers));
   const eco = $derived(ent(props.eco));
   const leg = $derived(isActive(ent(props.legionella)));
-  const narrow = $derived(w < 340);
 </script>
 
 <div class="wh" class:off={!on} class:heating>
-  {#if show('tank')}
-    <div class="glow"><div class="tank">
-      <div class="fill" style:height="{fill}%"></div>
-      {#if heating}<span class="bubble" style:left="30%"></span><span class="bubble" style:left="56%" style:animation-delay="1.1s"></span><span class="bubble" style:left="43%" style:animation-delay="2s"></span>{/if}
-    </div></div>
-  {/if}
-  <div class="info">
-    <div class="head">
-      <div class="title">{t(props.title) || a.friendly_name || 'Water heater'}</div>
-      {#if show('power')}<button class="pw" class:on aria-label={on ? 'Turn off' : 'Turn on'} onclick={() => toggle(pw || e)}><Icon icon="mdi:power" size="1.1em" /></button>{/if}
-    </div>
-    <div class="now"><b>{cur != null ? formatNumber(cur, 0) : '—'}</b><span>°C</span>
-      <em>{!e ? 'Not found' : !on ? 'Off' : leg ? 'Anti-legionella' : heating ? 'Heating' : 'Ready'}</em>
-    </div>
-    {#if show('target') && target != null}
-      <div class="target" data-stop>
-        <button class="nb" aria-label="Cooler" disabled={!on} onclick={() => nudge(-1)}><Icon icon="mdi:minus" size="1.1em" /></button>
-        <span><small>target</small> {formatNumber(target, 0)}°</span>
-        <button class="nb" aria-label="Warmer" disabled={!on} onclick={() => nudge(1)}><Icon icon="mdi:plus" size="1.1em" /></button>
-      </div>
+  {#if props.title !== '-'}<CardTitle icon="mdi:water" color="var(--hot)" title={t(props.title) || say('Hot water', 'Águas quentes')} />{/if}
+  <div class="row">
+    {#if show('tank')}
+      <div class="glow"><div class="tank">
+        <div class="fill" style:height="{fill}%"></div>
+        {#if heating}<span class="bubble" style:left="30%"></span><span class="bubble" style:left="56%" style:animation-delay="1.1s"></span><span class="bubble" style:left="43%" style:animation-delay="2s"></span>{/if}
+      </div></div>
     {/if}
-    <div class="chips" data-stop>
-      {#if showers && show('showers')}<span class="chip"><Icon icon="mdi:shower-head" size="1em" />{formatNumber(showers.state, 0)}{narrow ? '' : ' showers'}</span>{/if}
-      {#if eco && show('eco')}<button class="chip" class:sel={eco.state === 'on'} onclick={() => toggle(eco)}><Icon icon="mdi:leaf" size="1em" />Eco</button>{/if}
-      {#if show('modes')}{#each modes as m (m)}<button class="chip" class:sel={m === mode} onclick={() => setMode(m)}>{label(m)}</button>{/each}{/if}
+    <div class="info">
+      <div class="head">
+        <div class="now num">{cur != null ? formatNumber(cur, 0) : '—'}°C</div>
+        {#if show('power')}<button class="pw" class:on data-stop aria-label={on ? say('Turn off', 'Desligar') : say('Turn on', 'Ligar')} onclick={() => toggle(pw || e)}><Icon icon="mdi:power" size="16px" /></button>{/if}
+      </div>
+      {#if show('target') && target != null}
+        <div class="kv" data-stop><span>{say('Target', 'Alvo')}</span>
+          <span class="tg"><button class="step" aria-label="−" disabled={!on} onclick={() => nudge(-1)}>−</button><b class="num">{formatNumber(target, 0)}°</b><button class="step" aria-label="+" disabled={!on} onclick={() => nudge(1)}>+</button></span>
+        </div>
+      {/if}
+      <div class="kv"><span>{say('State', 'Estado')}</span><span class="st">{!e ? say('Not found', 'Não encontrado') : !on ? say('Off', 'Desligado') : leg ? 'Anti-legionella' : heating ? say('Heating', 'A aquecer') : say('Ready', 'Pronto')}</span></div>
+      {#if showers && show('showers')}<div class="kv"><span>{say('Showers (≈)', 'Duches (≈)')}</span><span>{formatNumber(showers.state, 0)}</span></div>{/if}
+      {#if (show('modes') && modes.length) || (eco && show('eco'))}
+        <div class="chips" data-stop>
+          {#if eco && show('eco')}<button class="chip" class:sel={eco.state === 'on'} onclick={() => toggle(eco)}><Icon icon="mdi:leaf" size="1em" />Eco</button>{/if}
+          {#if show('modes')}{#each modes as m (m)}<button class="chip" class:sel={m === mode} onclick={() => setMode(m)}>{label(m)}</button>{/each}{/if}
+        </div>
+      {/if}
     </div>
   </div>
 </div>
 
 <style>
-  .wh { height: 100%; display: flex; gap: 18px; align-items: center; }
-  .glow { height: 100%; max-height: 200px; aspect-ratio: 62 / 136; flex: none; filter: drop-shadow(0 0 18px rgba(255, 140, 40, .3)); transition: filter .6s; }
+  .wh { height: 100%; display: flex; flex-direction: column; min-height: 0; }
+  .row { flex: 1; min-height: 0; display: flex; gap: 16px; align-items: center; }
+  .glow { height: 100%; max-height: 150px; aspect-ratio: 62 / 136; flex: none; filter: drop-shadow(0 0 18px rgba(255, 140, 40, .35)); transition: filter .6s; }
   .off .glow { filter: none; }
   .tank { width: 100%; height: 100%; border-radius: 50% / 10%; position: relative; overflow: hidden;
     background: linear-gradient(90deg, #1b2638 0%, #4a5d79 28%, #8aa0bd 40%, #4a5d79 55%, #1b2638 100%);
@@ -120,23 +122,21 @@
   .tank::after { content: ''; position: absolute; left: 14%; top: 8%; width: 12%; height: 84%; border-radius: 6px; background: linear-gradient(180deg, rgba(255,255,255,.45), rgba(255,255,255,.05)); pointer-events: none; }
   .bubble { position: absolute; bottom: 4px; width: 5px; height: 5px; border-radius: 50%; background: rgba(255,240,210,.75); animation: rise 3s linear infinite; }
   @keyframes rise { from { transform: translateY(0); opacity: 0; } 15% { opacity: 1; } to { transform: translateY(-110px); opacity: 0; } }
-  .info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 10px; }
-  .head { display: flex; align-items: center; gap: 8px; }
-  .title { flex: 1; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .pw { border: 0; width: 2.2em; height: 2.2em; border-radius: 50%; display: grid; place-items: center; background: rgba(255,255,255,.07); color: var(--muted); }
-  .pw.on { background: rgba(255,138,76,.22); color: #ff9a4c; }
-  .now { display: flex; align-items: baseline; gap: 4px; }
-  .now b { font-size: 2.6em; line-height: 1; font-weight: 600; }
-  .heating .now b { color: #ffb36b; text-shadow: 0 0 18px rgba(255,140,40,.45); }
-  .now span { color: var(--muted); }
-  .now em { margin-left: auto; font-style: normal; font-size: .8em; color: var(--muted); }
-  .heating .now em { color: #ff9a4c; }
-  .target { display: flex; align-items: center; gap: 6px; }
-  .target span { flex: 1; text-align: center; font-weight: 600; }
-  .target small { color: var(--muted); font-weight: 400; }
-  .nb { border: 0; width: 2.4em; height: 2.2em; border-radius: 12px; display: grid; place-items: center; background: rgba(255,255,255,.07); color: inherit; }
-  .nb:disabled { opacity: .4; }
+  .info { flex: 1; min-width: 0; display: grid; gap: 8px; align-content: center; }
+  .head { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+  .now { font-size: 34px; font-weight: 200; line-height: 1; color: var(--sun); text-shadow: 0 0 18px rgba(255,184,77,.55); white-space: nowrap; }
+  .off .now { color: var(--muted); text-shadow: none; }
+  .pw { width: 36px; height: 34px; flex: none; border-radius: 11px; border: 1px solid var(--edge); color: var(--text); background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.02)); display: grid; place-items: center; padding: 0; transition: box-shadow .25s, background .25s; }
+  .pw.on { background: radial-gradient(circle at 50% 30%, #ff9a8c, var(--hot)); border-color: transparent; color: #fff; box-shadow: 0 0 22px -2px var(--hot), inset 0 1px 0 rgba(255,255,255,.5); }
+  .kv { display: flex; justify-content: space-between; align-items: center; gap: 8px; font-size: 12px; white-space: nowrap; }
+  .kv > span:first-child { color: var(--muted); }
+  .heating .st { color: var(--sun); }
+  .tg { display: flex; align-items: center; gap: 6px; }
+  .tg b { font-weight: 400; font-size: 13px; min-width: 2.4em; text-align: center; }
+  .step { width: 30px; height: 30px; border-radius: 10px; border: 1px solid var(--edge); color: var(--text); background: linear-gradient(180deg, rgba(255,255,255,.08), rgba(255,255,255,.02)); font-size: 16px; line-height: 1; box-shadow: inset 0 1px 0 var(--edge-hi); padding: 0; }
+  .step:disabled { opacity: .4; }
   .chips { display: flex; flex-wrap: wrap; gap: 6px; }
-  .chip { border: 0; border-radius: 999px; padding: 5px 10px; font-size: .8em; display: inline-flex; align-items: center; gap: 5px; background: rgba(255,255,255,.07); color: inherit; }
-  .chip.sel { background: rgba(255,138,76,.25); color: #ffc08f; }
+  .chip { border: 1px solid var(--edge); border-radius: 11px; padding: 5px 9px; font-size: 11px; display: inline-flex; align-items: center; gap: 5px; color: var(--text); background: linear-gradient(180deg, rgba(255,255,255,.07), rgba(255,255,255,.02)); }
+  .chip.sel { border-color: rgba(255,138,76,.5); background: rgba(255,138,76,.2); color: #ffc08f; }
+  @media (prefers-reduced-motion: reduce) { .bubble { animation: none; } }
 </style>

@@ -19,3 +19,8 @@ input[type='checkbox'] { width: auto; accent-color: var(--accent); }
 ::-webkit-scrollbar { width: 8px; height: 8px; }
 ::-webkit-scrollbar-thumb { background: rgba(255,255,255,.15); border-radius: 4px; }
 ::-webkit-scrollbar-track { background: transparent; }
+
+/* CapsuleOS palette, shared by the cards: warm for lights and sun, cool for
+   climate, green for "all good", red for heat and live. */
+:root { --sun: #ffb84d; --cool: #5ccbff; --ok: #43e08a; --hot: #ff5a4a; --well: rgba(255,255,255,.035); --edge: rgba(150,180,230,.16); --edge-hi: rgba(255,255,255,.09); }
+.num { font-family: var(--display); font-variant-numeric: tabular-nums; }
