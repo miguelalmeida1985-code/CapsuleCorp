@@ -20,6 +20,23 @@ const DIST = path.resolve(process.env.DIST_DIR || 'dist');
 const CONFIG = path.join(DATA, 'dashboard.json');
 fs.mkdirSync(DATA, { recursive: true });
 
+// ---- direct port ----
+// Inside Home Assistant the dashboard is opened through ingress: HA has logged the
+// person in and the request comes from the Supervisor (172.30.32.2). The optional
+// direct port (for kiosk apps) has no HA login, so the app's options decide what it
+// may do: `direct_key` asks for a key once (?key=…, then remembered in a cookie) and
+// `direct_edit` lets it edit the dashboard. Outside the add-on (development) there's
+// no direct port to worry about.
+const OPTIONS = (() => { try { return SUP ? JSON.parse(fs.readFileSync(path.join(DATA, 'options.json'), 'utf8')) : {}; } catch { return {}; } })();
+const DIRECT_KEY = String(OPTIONS.direct_key || '');
+const DIRECT_EDIT = OPTIONS.direct_edit === true;
+const KEY_COOKIE = 'capsuleos_key';
+const viaIngress = (req) => !SUP || /(^|:)172\.30\.32\.2$/.test(req.socket.remoteAddress || '');
+const cookie = (req, name) => (req.headers.cookie || '').split(/;\s*/).find((c) => c.startsWith(name + '='))?.slice(name.length + 1) || '';
+const sameKey = (a, b) => { const x = Buffer.from(a), y = Buffer.from(b); return x.length === y.length && crypto.timingSafeEqual(x, y); };
+/** Direct-port requests without the key (when one is set) are turned away. */
+const keyMissing = (req) => DIRECT_KEY && !viaIngress(req) && !sameKey(decodeURIComponent(cookie(req, KEY_COOKIE)), DIRECT_KEY);
+
 const TYPES = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.css': 'text/css', '.svg': 'image/svg+xml', '.png': 'image/png', '.json': 'application/json', '.woff2': 'font/woff2', '.ico': 'image/x-icon' };
 
 function send(res, code, body, type = 'application/json') {
@@ -45,7 +62,7 @@ function iconPath(name) {
 }
 
 // Who may edit: Home Assistant admins. Ingress tells us who's looking
-// (X-Remote-User-Id); the direct port has no HA login, so it's left open.
+// (X-Remote-User-Id); the direct port has no HA login, so only if direct_edit is on.
 let users = { at: 0, admins: null };
 async function haUsers() {
   if (Date.now() - users.at < 60e3 && users.admins) return users.admins;
@@ -65,15 +82,42 @@ async function haUsers() {
   return users.admins;
 }
 async function isAdmin(req) {
+  if (!SUP) return true;
+  if (!viaIngress(req)) return DIRECT_EDIT;
   const id = req.headers['x-remote-user-id'];
-  if (!id) return true;
-  try { return (await haUsers()).has(id); } catch (e) { console.error('user check:', e.message); return true; }
+  if (!id) return false;
+  // If HA can't be asked, nobody edits until it can (rather than everybody).
+  try { return (await haUsers()).has(id); } catch (e) { console.error('user check:', e.message); return false; }
 }
+
+// What the dashboard fetches from HA through /ha/: pictures, camera snapshots,
+// calendars and signed media links. Nothing else of HA's API is reachable this way.
+const HA_GET = /^\/(api\/(camera_proxy|media_player_proxy|image_proxy|image\/serve|brands|calendars|tts_proxy)\/|local\/|media\/)/;
+
+// The websocket commands the dashboard sends. Anything else (user admin, config
+// changes, the Supervisor…) is refused, so the add-on's HA token can't be used for it.
+const WS_ALLOWED = new Set([
+  'subscribe_entities', 'unsubscribe_events', 'call_service', 'render_template', 'get_states', 'get_config', 'ping',
+  'history/history_during_period', 'recorder/statistics_during_period', 'energy/get_prefs',
+  'weather/subscribe_forecast', 'media_source/browse_media', 'media_source/resolve_media', 'frontend/get_translations',
+  'config/entity_registry/get', 'config/area_registry/list', 'repairs/list_issues', 'persistent_notification/subscribe',
+  'camera/stream', 'camera/capabilities', 'camera/webrtc/offer', 'camera/webrtc/candidate', 'camera/webrtc/get_client_config',
+]);
 
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, 'http://x');
   const p = url.pathname;
   try {
+    if (DIRECT_KEY && !viaIngress(req)) {
+      // First visit with ?key=…: remember it and drop it from the address.
+      const k = url.searchParams.get('key');
+      if (k != null && sameKey(k, DIRECT_KEY)) {
+        url.searchParams.delete('key');
+        res.writeHead(302, { 'Set-Cookie': `${KEY_COOKIE}=${encodeURIComponent(k)}; Path=/; Max-Age=315360000; HttpOnly; SameSite=Lax`, Location: url.pathname + url.search });
+        return res.end();
+      }
+      if (keyMissing(req)) return send(res, 401, 'CapsuleOS: add ?key=… (the direct access key from the app settings) to the address.', 'text/plain; charset=utf-8');
+    }
     if (p === '/api/config') {
       if (req.method === 'GET') return send(res, 200, fs.existsSync(CONFIG) ? fs.readFileSync(CONFIG) : 'null');
       if (req.method === 'PUT') {
@@ -106,6 +150,7 @@ const server = http.createServer(async (req, res) => {
       // Signed media links (/media/…?authSig=, e.g. photos from local media) carry
       // their own permission and aren't under /api, which the Supervisor's proxy
       // only passes on, so in the app they go straight to Home Assistant.
+      if (req.method !== 'GET' || !HA_GET.test(p.slice(3))) return send(res, 403, '{"error":"Not available through the dashboard"}');
       const signed = !p.startsWith('/ha/api/') && url.searchParams.has('authSig');
       const direct = signed && SUP ? await coreDirect() : null;
       const target = (direct || HA_URL) + p.slice(3) + url.search;
@@ -228,6 +273,7 @@ async function camStream(ws, entity) {
 }
 
 server.on('upgrade', (req, socket, head) => {
+  if (keyMissing(req)) return socket.destroy();
   if (req.url.split('?')[0].endsWith('/api/camera')) {
     const entity = new URL(req.url, 'http://x').searchParams.get('entity') || '';
     if (!/^camera\.[a-z0-9_]+$/.test(entity)) return socket.destroy();
@@ -256,7 +302,16 @@ server.on('upgrade', (req, socket, head) => {
       }
       client.send(data, { binary: isBinary });
     });
-    client.on('message', (data) => (ready ? ha.send(data.toString()) : queue.push(data.toString())));
+    client.on('message', (data) => {
+      const text = data.toString();
+      let msg;
+      try { msg = JSON.parse(text); } catch { return; }
+      if (!WS_ALLOWED.has(msg.type)) {
+        console.warn('refused websocket command', msg.type);
+        return client.send(JSON.stringify({ id: msg.id, type: 'result', success: false, error: { code: 'not_allowed', message: `${msg.type} isn't available through the dashboard` } }));
+      }
+      ready ? ha.send(text) : queue.push(text);
+    });
     const close = () => { client.close(); ha.close(); };
     ha.on('close', close); ha.on('error', close);
     client.on('close', close); client.on('error', close);
