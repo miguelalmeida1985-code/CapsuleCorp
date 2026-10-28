@@ -12,7 +12,7 @@
   import { connectLive } from './lib/live.js';
   import { param, setParentHash } from './lib/params.js';
   import { tvMode, liteEffects, startTv } from './lib/tv.js';
-  import { cards as cardTypes } from './lib/registry.js';
+  import { cards as cardTypes, preload } from './lib/registry.js';
   import { reloadFromServer, startView } from './lib/config.svelte.js';
 
   let vw = $state(innerWidth);
@@ -34,6 +34,9 @@
   }
 
   load();
+  // Load the cards this dashboard uses in the background, so other views open instantly.
+  let preloaded = false;
+  $effect(() => { if (app.config && !preloaded) { preloaded = true; preload(Object.values(app.config.cards).map((c) => c.type)); } });
 
   // Subscribe only to entities the dashboard uses (all of them while editing, for pickers).
   let watchTimer;

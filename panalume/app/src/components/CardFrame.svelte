@@ -10,6 +10,13 @@
 
   let { card, w, h, editing = false, inPopup = false } = $props();
   const def = $derived(cards[card.type]);
+  // The card's component loads the first time it's shown (usually already preloaded).
+  let Comp = $state(null);
+  $effect(() => {
+    const d = def;
+    Comp = d?.component ?? null;
+    if (d && !d.component) d.load().then((c) => { if (def === d) Comp = c; });
+  });
   const s = $derived(card.style || {});
   const vars = $derived({ entity_id: card.props?.entity });
   // Content size: dashboard-wide card size × this card's own size (both %).
@@ -100,7 +107,7 @@
     onpointerdown={down} onpointermove={move} onpointerup={up} onpointercancel={() => clearTimeout(holdTimer)} ontvpress={() => !editing && run('tap')}>
     <div class="content" style="zoom:{z};{inPopup ? 'width:100%;height:100%' : `width:${w / z}px;height:${h / z}px`}">
       {#if def}
-        <def.component props={card.props || {}} {card} w={w / z} h={h / z} {editing} />
+        {#if Comp}<Comp props={card.props || {}} {card} w={w / z} h={h / z} {editing} />{/if}
       {:else}
         <div class="missing">Unknown card “{card.type}”</div>
       {/if}
