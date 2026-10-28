@@ -14,6 +14,7 @@
   import { tvMode, liteEffects, startTv } from './lib/tv.js';
   import { cards as cardTypes, preload } from './lib/registry.js';
   import { reloadFromServer, startView } from './lib/config.svelte.js';
+  import { lock, startHold, cancelHold, nudge } from './lib/childlock.svelte.js';
 
   let vw = $state(innerWidth);
   // The start screen stays up until the first connection to Home Assistant, so the
@@ -231,6 +232,19 @@
 
 {#if !conn.connected && booted}<div class="offline"><Icon icon="mdi:lan-disconnect" size="1em" /> Connecting to Home Assistant…</div>{/if}
 {#if showVersion}<div class="version" class:behind title={behind ? 'The server has been updated; this screen reloads when it can.' : 'Running version'}>v{version}{#if behind}{' → v'}{serverVersion}{/if}{#if shellVersion}{' · app '}{shellVersion}{/if}</div>{/if}
+<!-- Child lock: a clear sheet over everything that swallows touches, except holding the padlock. -->
+{#if lock.locked && !app.editing}
+  <div class="childlock" role="presentation" oncontextmenu={(e) => e.preventDefault()}
+    onpointerdown={(e) => {
+      e.preventDefault();
+      const r = document.querySelector('[data-childlock]')?.getBoundingClientRect();
+      // No padlock on this view: holding anywhere unlocks, so nobody gets locked out.
+      if (!r || r.width === 0) { e.currentTarget.setPointerCapture(e.pointerId); startHold(); }
+      else if (e.clientX >= r.left - 8 && e.clientX <= r.right + 8 && e.clientY >= r.top - 8 && e.clientY <= r.bottom + 8) { e.currentTarget.setPointerCapture(e.pointerId); startHold(); }
+      else nudge();
+    }}
+    onpointerup={cancelHold} onpointercancel={cancelHold} onlostpointercapture={cancelHold}></div>
+{/if}
 <div class="toasts">{#each toasts as t (t.id)}<div class="toast">{t.text}</div>{/each}</div>
 <Popup />
 
@@ -269,6 +283,7 @@
   @keyframes splash { 50% { transform: scale(.94); opacity: .8; } }
   @media (prefers-reduced-motion: reduce) { .splash img { animation: none; } }
   .offline { position: fixed; top: 12px; left: 50%; transform: translateX(-50%); z-index: 950; background: rgba(255,120,80,.9); color: #000; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; display: flex; gap: 6px; align-items: center; }
+  .childlock { position: fixed; inset: 0; z-index: 2000; touch-action: none; -webkit-tap-highlight-color: transparent; }
   .toasts { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); z-index: 960; display: flex; flex-direction: column; gap: 6px; }
   .toast { background: #2a2f40; padding: 10px 16px; border-radius: 12px; box-shadow: 0 6px 20px rgba(0,0,0,.4); font-size: 14px; }
   @media (max-width: 480px) {
