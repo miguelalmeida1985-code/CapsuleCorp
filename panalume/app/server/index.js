@@ -289,5 +289,5 @@ async function refreshPanel() {
   }
 }
 
-server.listen(PORT, () => console.log(`Panalume on :${PORT} -> ${HA_URL}`));
+server.listen(PORT, () => console.log(`CapsuleOS on :${PORT} -> ${HA_URL}`));
 refreshPanel();

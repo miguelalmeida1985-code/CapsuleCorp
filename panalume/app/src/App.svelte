@@ -11,10 +11,15 @@
   import { setKiosk } from './lib/kiosk.js';
   import { connectLive } from './lib/live.js';
   import { param, setParentHash } from './lib/params.js';
+  import { tvMode, liteEffects, startTv } from './lib/tv.js';
   import { cards as cardTypes } from './lib/registry.js';
   import { reloadFromServer, startView } from './lib/config.svelte.js';
 
   let vw = $state(innerWidth);
+  // The start screen stays up until the first connection to Home Assistant, so the
+  // dashboard doesn't appear with every card empty.
+  let booted = $state(false);
+  $effect(() => { if (conn.connected) booted = true; });
   const autoDevice = detectDevice();
   // The editor panel docks left, right or along the bottom; the dashboard gets the rest of the width.
   const side = $derived(app.panelSide || (vw > 760 ? 'right' : 'bottom'));
@@ -71,7 +76,8 @@
   // ?noedit: no pencil and no E shortcut (wall tablets that shouldn't be edited).
   // Fully Kiosk (with its JavaScript interface on) tells us when the screen comes back on.
   try { window.fully?.bind?.('screenOn', "window.dispatchEvent(new Event('panalume-wake'))"); } catch {}
-  const noEditParam = param('noedit') != null && param('noedit') !== '0';
+  // A TV is never edited from its remote, so ?tv implies ?noedit.
+  const noEditParam = (param('noedit') != null && param('noedit') !== '0') || tvMode;
   // Only Home Assistant admins can edit (the server checks too).
   fetch('api/me').then((r) => r.json()).then((m) => { app.canEdit = m.admin !== false; if (!app.canEdit) app.editing = false; }).catch(() => {});
   const noEdit = $derived(noEditParam || !app.canEdit);
@@ -138,6 +144,17 @@
     if (home && app.view !== home) setView(home);
   }, 10e3);
 
+  // ?tv: the remote moves a highlight between cards and buttons; Back closes pop-ups and menus.
+  if (liteEffects) document.documentElement.classList.add('lite');
+  if (tvMode) startTv({
+    active: () => !app.editing,
+    back: () => {
+      if (app.popup) return (app.popup = null), true;
+      if (viewsOpen) return (viewsOpen = false), true;
+      return false;
+    },
+  });
+
   // Keep the current view in Home Assistant's address bar (…/panalume#energy) for bookmarks and links.
   $effect(() => { if (app.config) setParentHash(app.view); });
 
@@ -190,7 +207,11 @@
   {/if}
 {/if}
 
-{#if !conn.connected}<div class="offline"><Icon icon="mdi:lan-disconnect" size="1em" /> Connecting to Home Assistant…</div>{/if}
+{#if !app.config || !booted}
+  <div class="splash"><img src="./capsule.png" alt="" /><span>Capsule<b>OS</b></span></div>
+{/if}
+
+{#if !conn.connected && booted}<div class="offline"><Icon icon="mdi:lan-disconnect" size="1em" /> Connecting to Home Assistant…</div>{/if}
 <div class="toasts">{#each toasts as t (t.id)}<div class="toast">{t.text}</div>{/each}</div>
 <Popup />
 
@@ -199,6 +220,10 @@
   .app.editing { padding-bottom: calc(var(--bar-h) + 12px); } /* room to scroll the last cards clear of the toolbar */
   .app.editing.sheet { padding-bottom: calc(var(--bar-h) + 45dvh + 12px); } /* …and of the panel when it's docked along the bottom */
   .noblur :global(.card) { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
+  :global(html.lite *) { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
+  /* The remote's highlight: a bright ring that glows, easy to follow from the sofa. */
+  :global(html.tv :focus-visible) { outline: 3px solid var(--accent); outline-offset: 3px; box-shadow: 0 0 0 6px color-mix(in srgb, var(--accent) 30%, transparent), 0 0 28px color-mix(in srgb, var(--accent) 55%, transparent); }
+  :global(html.tv .card:focus-visible) { outline-offset: -3px; z-index: 5; }
   .bar { position: fixed; left: 0; right: 0; bottom: 0; height: var(--bar-h); z-index: 850; display: flex; align-items: center; justify-content: center; justify-content: safe center; gap: 6px; padding: 0 10px; overflow-x: auto; background: rgba(20,24,36,.98); border-top: 1px solid rgba(255,255,255,.1); box-shadow: 0 -6px 24px rgba(0,0,0,.35); font-size: 13px; } /* always docked along the bottom edge, full width */
   .bar > * { flex: none; }
   .bar select { width: auto; max-width: 11em; } /* not full width like other dropdowns */
@@ -217,6 +242,11 @@
   .vlist { display: flex; flex-direction: column; gap: 2px; padding: 6px; border-radius: 14px; background: rgba(20,24,34,.95); box-shadow: 0 10px 30px rgba(0,0,0,.45); border: 1px solid rgba(255,255,255,.08); }
   .vlist button { display: flex; align-items: center; gap: 10px; padding: 9px 14px 9px 10px; border: 0; border-radius: 10px; background: none; color: var(--text); font: inherit; text-align: left; white-space: nowrap; }
   .vlist button.on { background: rgba(122,162,255,.18); }
+  .splash { position: fixed; inset: 0; z-index: 940; background: #0b0f17; display: grid; place-content: center; justify-items: center; gap: 18px; color: var(--muted); font-size: 17px; letter-spacing: .12em; }
+  .splash b { color: #3a9ad9; }
+  .splash img { width: min(34vw, 180px); filter: drop-shadow(0 10px 30px rgba(0,0,0,.5)); animation: splash 1.8s ease-in-out infinite; }
+  @keyframes splash { 50% { transform: scale(.94); opacity: .8; } }
+  @media (prefers-reduced-motion: reduce) { .splash img { animation: none; } }
   .offline { position: fixed; top: 12px; left: 50%; transform: translateX(-50%); z-index: 950; background: rgba(255,120,80,.9); color: #000; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; display: flex; gap: 6px; align-items: center; }
   .toasts { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); z-index: 960; display: flex; flex-direction: column; gap: 6px; }
   .toast { background: #2a2f40; padding: 10px 16px; border-radius: 12px; box-shadow: 0 6px 20px rgba(0,0,0,.4); font-size: 14px; }

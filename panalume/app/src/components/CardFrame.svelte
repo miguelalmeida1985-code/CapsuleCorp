@@ -97,7 +97,7 @@
 {#if visible || editing}
   {#if cssParts.rules}{@html `<style>${cssParts.rules}</style>`}{/if}
   <div role="presentation" data-card={card.id} class="card {card.type}" class:tappable class:noblur={flat} class:hidden={!visible} class:popup={inPopup} {style}
-    onpointerdown={down} onpointermove={move} onpointerup={up} onpointercancel={() => clearTimeout(holdTimer)}>
+    onpointerdown={down} onpointermove={move} onpointerup={up} onpointercancel={() => clearTimeout(holdTimer)} ontvpress={() => !editing && run('tap')}>
     <div class="content" style="zoom:{z};{inPopup ? 'width:100%;height:100%' : `width:${w / z}px;height:${h / z}px`}">
       {#if def}
         <def.component props={card.props || {}} {card} w={w / z} h={h / z} {editing} />
