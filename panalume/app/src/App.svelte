@@ -159,7 +159,22 @@
   $effect(() => { if (app.config) setParentHash(app.view); });
 
   // Live: reload the layout as soon as another screen saves, and the page after an add-on update.
-  connectLive({ onConfig: reloadFromServer, canReload: () => !app.editing && !app.dirty });
+  // The version in the bottom-left corner: this screen's, and the server's when they
+  // differ (a screen that couldn't reload yet, e.g. mid-edit). ?app_version= adds the
+  // kiosk app's own version; ?noversion hides it.
+  const version = __APP_VERSION__;
+  const shellVersion = param('app_version');
+  const showVersion = param('noversion') == null;
+  let serverVersion = $state(version);
+  const behind = $derived(!!serverVersion && serverVersion !== version);
+  connectLive({ onConfig: reloadFromServer, canReload: () => !app.editing && !app.dirty, onVersion: (v) => (serverVersion = v) });
+  // A screen that was mid-edit when the update came reloads once the edit is saved.
+  // Once per version, so a page that somehow still loads the old build doesn't reload forever.
+  $effect(() => {
+    if (!behind || app.editing || app.dirty) return;
+    try { if (sessionStorage.getItem('capsuleos-reloaded') === serverVersion) return; sessionStorage.setItem('capsuleos-reloaded', serverVersion); } catch {}
+    location.reload();
+  });
 </script>
 
 <svelte:window bind:innerWidth={vw} onkeydown={key} onhashchange={() => { const v = location.hash.slice(1); if (v) app.view = v; }} />
@@ -212,6 +227,7 @@
 {/if}
 
 {#if !conn.connected && booted}<div class="offline"><Icon icon="mdi:lan-disconnect" size="1em" /> Connecting to Home Assistant…</div>{/if}
+{#if showVersion}<div class="version" class:behind title={behind ? 'The server has been updated; this screen reloads when it can.' : 'Running version'}>v{version}{#if behind}{' → v'}{serverVersion}{/if}{#if shellVersion}{' · app '}{shellVersion}{/if}</div>{/if}
 <div class="toasts">{#each toasts as t (t.id)}<div class="toast">{t.text}</div>{/each}</div>
 <Popup />
 
@@ -219,6 +235,8 @@
   .app { min-height: 100dvh; }
   .app.editing { padding-bottom: calc(var(--bar-h) + 12px); } /* room to scroll the last cards clear of the toolbar */
   .app.editing.sheet { padding-bottom: calc(var(--bar-h) + 45dvh + 12px); } /* …and of the panel when it's docked along the bottom */
+  .version { position: fixed; left: 8px; bottom: 6px; z-index: 900; font-size: 10px; letter-spacing: .04em; color: var(--muted); opacity: .5; pointer-events: none; font-variant-numeric: tabular-nums; }
+  .version.behind { opacity: 1; color: #ffb347; }
   .noblur :global(.card) { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
   :global(html.lite *) { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
   /* The remote's highlight: a bright ring that glows, easy to follow from the sofa. */
