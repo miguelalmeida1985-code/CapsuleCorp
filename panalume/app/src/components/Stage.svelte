@@ -510,7 +510,7 @@
         style="left:{Math.round(p.x * k)}px;top:{main ? p.y - liftY(p.y) : name !== 'sidebar' ? p.y - groupUp(p) : p.y}px;width:{pw}px;height:{p.h}px;z-index:{(p.z || 0) + (op && inSel(name, i) ? 1000 : isPrimary(name, i) ? 500 : 0)}">
         <CardFrame {card} w={pw} h={p.h} editing={app.editing} />
         {#if app.editing}
-          <div class="grab" role="button" tabindex="-1" ondblclick={() => dbl(name, i)}
+          <div class="grab" class:corner={card.props?.place_pins} role="button" tabindex="-1" ondblclick={() => dbl(name, i)}
             onpointerdown={(e) => begin(e, name, i, 'move')} onpointermove={move} onpointerup={end} onpointercancel={end}></div>
           {#if isPrimary(name, i) && sel.size === 1}
             {#each HANDLES as d}
@@ -581,6 +581,7 @@
   .place.sel { outline: 1px solid rgba(122,162,255,.7) !important; outline-offset: 2px; border-radius: var(--radius); }
   .place.primary { outline: 2px solid var(--accent) !important; }
   .grab { position: absolute; inset: 0; cursor: move; touch-action: none; z-index: 2; }
+  .grab.corner { inset: 0 auto auto 0; width: 34px; height: 34px; border-radius: 0 0 12px 0; background: rgba(122,162,255,.55); } /* a card's own drag mode (House: moving its labels) leaves just a corner to move the card by */
   .h { position: absolute; z-index: 3; touch-action: none; }
   .h::after { content: ''; position: absolute; inset: 50% auto auto 50%; width: 12px; height: 12px; transform: translate(-50%, -50%); background: #fff; border: 2px solid var(--accent); border-radius: 4px; box-shadow: 0 1px 4px rgba(0,0,0,.4); }
   .h-n, .h-s { left: 16px; right: 16px; height: 20px; cursor: ns-resize; }

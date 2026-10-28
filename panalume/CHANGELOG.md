@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.1.0
+
+- **CapsuleOS.** First CapsuleOS version: its own name, Capsule Corp logo and icon in Home Assistant, and a start screen with the logo while it connects. Built on Panalume 0.36.0; CapsuleOS versions count from here.
+
 ## 0.36.0
 
 - **Football card.** For the Soccer Live integration: the match on now with the score and minute, or the next one with its kick-off, then the next fixtures and recent results with a win / draw / loss for your team. Teams show as short badges; tick **Team logos** to load their logos from ESPN.

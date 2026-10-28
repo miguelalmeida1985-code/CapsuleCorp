@@ -15,6 +15,10 @@
   import { reloadFromServer, startView } from './lib/config.svelte.js';
 
   let vw = $state(innerWidth);
+  // The start screen stays up until the first connection to Home Assistant, so the
+  // dashboard doesn't appear with every card empty.
+  let booted = $state(false);
+  $effect(() => { if (conn.connected) booted = true; });
   const autoDevice = detectDevice();
   // The editor panel docks left, right or along the bottom; the dashboard gets the rest of the width.
   const side = $derived(app.panelSide || (vw > 760 ? 'right' : 'bottom'));
@@ -205,7 +209,11 @@
   {/if}
 {/if}
 
-{#if !conn.connected}<div class="offline"><Icon icon="mdi:lan-disconnect" size="1em" /> Connecting to Home Assistant…</div>{/if}
+{#if !app.config || !booted}
+  <div class="splash"><img src="./capsule.png" alt="" /><span>Capsule<b>OS</b></span></div>
+{/if}
+
+{#if !conn.connected && booted}<div class="offline"><Icon icon="mdi:lan-disconnect" size="1em" /> Connecting to Home Assistant…</div>{/if}
 {#if showVersion}<div class="version" class:behind title={behind ? 'The server has been updated; this screen reloads when it can.' : 'Running version'}>v{version}{#if behind}{' → v'}{serverVersion}{/if}{#if shellVersion}{' · app '}{shellVersion}{/if}</div>{/if}
 <div class="toasts">{#each toasts as t (t.id)}<div class="toast">{t.text}</div>{/each}</div>
 <Popup />
@@ -235,6 +243,11 @@
   .vlist { display: flex; flex-direction: column; gap: 2px; padding: 6px; border-radius: 14px; background: rgba(20,24,34,.95); box-shadow: 0 10px 30px rgba(0,0,0,.45); border: 1px solid rgba(255,255,255,.08); }
   .vlist button { display: flex; align-items: center; gap: 10px; padding: 9px 14px 9px 10px; border: 0; border-radius: 10px; background: none; color: var(--text); font: inherit; text-align: left; white-space: nowrap; }
   .vlist button.on { background: rgba(122,162,255,.18); }
+  .splash { position: fixed; inset: 0; z-index: 940; background: #0b0f17; display: grid; place-content: center; justify-items: center; gap: 18px; color: var(--muted); font-size: 17px; letter-spacing: .12em; }
+  .splash b { color: #3a9ad9; }
+  .splash img { width: min(34vw, 180px); filter: drop-shadow(0 10px 30px rgba(0,0,0,.5)); animation: splash 1.8s ease-in-out infinite; }
+  @keyframes splash { 50% { transform: scale(.94); opacity: .8; } }
+  @media (prefers-reduced-motion: reduce) { .splash img { animation: none; } }
   .offline { position: fixed; top: 12px; left: 50%; transform: translateX(-50%); z-index: 950; background: rgba(255,120,80,.9); color: #000; padding: 6px 14px; border-radius: 20px; font-size: 13px; font-weight: 600; display: flex; gap: 6px; align-items: center; }
   .toasts { position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%); z-index: 960; display: flex; flex-direction: column; gap: 6px; }
   .toast { background: #2a2f40; padding: 10px 16px; border-radius: 12px; box-shadow: 0 6px 20px rgba(0,0,0,.4); font-size: 14px; }
