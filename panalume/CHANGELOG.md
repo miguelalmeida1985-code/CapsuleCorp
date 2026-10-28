@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.2.0
+
+- **House card.** The hall's picture of the house with live labels floating over it, the outdoor lights shown on or off as they really are, and the solar panels shimmering while they produce. The shimmer now runs on the GPU, so it costs a cheap tablet far less.
+- **Water heater card.** A glass tank that fills up to the water's temperature, with bubbles while it heats, the target temperature (− / +), its modes, eco and on / off. Found automatically for Ariston (Velis and others).
+- **Fox ESS.** The Solar, Energy flow, Power flow and Battery cards find a Fox ESS inverter on their own, from the local Modbus integration or the cloud one.
+- **TV mode.** Add `?tv` to the address on a TV: the remote's arrows move a highlight between cards and buttons, OK presses, Back closes a pop-up. Blur is turned off there to keep old TV boxes smooth (`?effects=lite` does that on any screen, `?effects=full` keeps it).
+- **Version on every screen.** Bottom left shows the version each screen is running, and the tablet / TV app's version next to it. When the NUC is updated, every screen reloads itself onto the new version; one being edited shows the update in amber instead. `?noversion` hides it.
+- **Tablet / TV app.** The CapsuleOS Android app for the wall tablet and the TV: full screen, screen always on, reconnects on its own, child lock on the tablet (hold the padlock 3 s to unlock), kiosk mode with a PIN. Each release comes with its APK, on the same version as the dashboard.
+- **Direct port, locked down.** Opening CapsuleOS on port 8099 without Home Assistant in front can now ask for an access key (**Direct access key** in the app's options; open it once with `?key=…` and the screen remembers it), editing there is off unless **Allow editing on the direct port** is on, and only the Home Assistant calls the dashboard itself uses are let through.
+- **Faster.** Each card type loads only when it's on screen (the start of the app is less than half the size), template subscriptions close when their card goes away, and all screens showing a camera share one stream from Home Assistant, at up to 10 pictures a second.
+
 ## 0.1.0
 
 - **CapsuleOS.** First CapsuleOS version: its own name, Capsule Corp logo and icon in Home Assistant, and a start screen with the logo while it connects. Built on Panalume 0.36.0; CapsuleOS versions count from here.
