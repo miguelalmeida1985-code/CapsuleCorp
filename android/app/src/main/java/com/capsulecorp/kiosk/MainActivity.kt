@@ -99,6 +99,19 @@ class MainActivity : Activity() {
         if (hasFocus) hideSystemBars()
     }
 
+    // A screen that's off or behind another app stops running the page's scripts and animations.
+    override fun onStart() {
+        super.onStart()
+        web.onResume()
+        web.resumeTimers()
+    }
+
+    override fun onStop() {
+        web.onPause()
+        web.pauseTimers()
+        super.onStop()
+    }
+
     override fun onPause() {
         super.onPause()
         // Keep the direct-access cookie on disk, so a power cut doesn't ask for ?key= again.

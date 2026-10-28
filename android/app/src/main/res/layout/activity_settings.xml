@@ -51,6 +51,12 @@
             style="@style/Capsule.Field"
             android:inputType="numberPassword" />
         <TextView style="@style/Capsule.Help" android:text="@string/pin_help" />
+        <TextView
+            android:id="@+id/pin_warning"
+            style="@style/Capsule.Help"
+            android:text="@string/pin_warning"
+            android:textColor="@color/warning"
+            android:visibility="gone" />
 
         <CheckBox
             android:id="@+id/child_lock"
