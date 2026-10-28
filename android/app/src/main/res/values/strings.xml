@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">CapsuleOS</string>
+    <string name="settings_title">Definições do CapsuleOS</string>
+
+    <string name="url_label">Endereço do dashboard</string>
+    <string name="url_hint">http://192.168.1.10:8099/</string>
+    <string name="url_help">O endereço do CapsuleOS no NUC, por exemplo pela porta direta 8099. As opções de ecrã (?noedit, ?tv, ?app_version) são acrescentadas sozinhas.</string>
+    <string name="mode_label">Este ecrã é</string>
+    <string name="mode_auto">Automático</string>
+    <string name="mode_tablet">Tablet</string>
+    <string name="mode_tv">TV</string>
+    <string name="extra_label">Opções extra do endereço (opcional)</string>
+    <string name="extra_hint">effects=lite&amp;fit=screen</string>
+    <string name="pin_label">PIN das definições</string>
+    <string name="pin_help">Pedido para abrir estas definições. Deixe vazio para não pedir.</string>
+    <string name="child_lock_label">Botão de bloqueio para criança (tablet)</string>
+    <string name="kiosk_label">Modo kiosk (fixar a app no ecrã)</string>
+    <string name="kiosk_help_owner">Device Owner ativo: a app fica presa no ecrã e é o ecrã inicial.</string>
+    <string name="kiosk_help_pinning">Sem Device Owner: o Android pede para afixar a app e mostra como sair. Para bloqueio total, ver android/README.md.</string>
+    <string name="save">Guardar</string>
+    <string name="exit_app">Sair da app</string>
+    <string name="remove_owner">Remover Device Owner</string>
+    <string name="remove_owner_confirm">Remover o Device Owner? A app deixa de estar presa no ecrã e para voltar é preciso repetir o comando ADB.</string>
+    <string name="version_line">Versão %1$s</string>
+
+    <string name="pin_title">PIN</string>
+    <string name="pin_wrong">PIN errado</string>
+    <string name="ok">OK</string>
+    <string name="cancel">Cancelar</string>
+
+    <string name="offline">Sem ligação ao CapsuleOS. A tentar de novo…</string>
+    <string name="lock_hint">Mantenha o cadeado pressionado para desbloquear</string>
+    <string name="lock_desc">Bloqueio para criança</string>
+</resources>
