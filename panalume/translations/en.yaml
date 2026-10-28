@@ -1,0 +1,9 @@
+configuration:
+  direct_key:
+    name: Direct access key
+    description: For the direct port only. When set, a screen opened on the direct port needs ?key=… in its address once (it's remembered after that). Leave empty to keep the direct port open to anyone on your network.
+  direct_edit:
+    name: Allow editing on the direct port
+    description: The direct port has no Home Assistant login, so by default it can show the dashboard but not change it. Edit from Home Assistant instead, or turn this on.
+network:
+  8099/tcp: Direct access (optional, e.g. for a wall tablet or TV)

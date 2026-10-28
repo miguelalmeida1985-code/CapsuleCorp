@@ -14,6 +14,8 @@ Open **Panalume** in the HA sidebar. Press the faint pencil (top-right) or **E**
 
 **Version** — every screen shows the version it's running in the bottom-left corner (`?noversion` hides it; a kiosk app can add its own with `?app_version=1.2.0`). After an update in Home Assistant every open screen reloads itself within seconds; one that's mid-edit shows `v0.1.0 → v0.2.0` in amber and reloads when the edit is done.
 
+**Direct port** — for kiosk apps that can't log in to Home Assistant, map port 8099 in the app's **Network** settings and open `http://<ha-ip>:8099/`. It has no Home Assistant login, so in the app's **Configuration**: set a **Direct access key** and open `http://<ha-ip>:8099/?key=<key>` once on each screen (it's remembered after that); editing there is off unless **Allow editing on the direct port** is on. Through the dashboard, only the commands and pictures the dashboard itself uses reach Home Assistant.
+
 Config is stored in the app's `/data/dashboard.json` (Layout → Export for a backup).
 
 ## Energy cards

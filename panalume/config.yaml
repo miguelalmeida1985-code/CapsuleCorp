@@ -17,4 +17,10 @@ hassio_api: true
 ports:
   8099/tcp: null
 ports_description:
-  8099/tcp: Direct access (optional, e.g. for a wall tablet; no HA login — leave unset unless your network is trusted)
+  8099/tcp: Direct access (optional, e.g. for a wall tablet or TV; no HA login, so set a direct access key unless your network is trusted)
+options:
+  direct_key: ""
+  direct_edit: false
+schema:
+  direct_key: password?
+  direct_edit: bool
