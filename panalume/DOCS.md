@@ -28,3 +28,12 @@ Added from **Add → Energy**; entities are auto-detected for the Octopus Energy
 ## Import from ha-fusion
 
 Edit → **Layout → Import from ha-fusion** rebuilds the dashboard from your ha-fusion app: views, rooms, buttons (their state / name / icon / colour / service templates keep working, including `entity_id`), cameras and sidebar items, with tablet, phone and desktop layouts. An **Energy** view is added from auto-detected Octopus / myenergi / solar / EV entities. Icons from other sets (`tabler:`, `mingcute:`, `solar:` …) load from Iconify.
+
+## House card (CapsuleOS)
+
+A picture of your house with live glass labels pinned to it. Add → **Info → House**.
+
+- **Picture**: put it in Home Assistant's `www` folder and use `/local/house.webp`. A cut-out on a transparent background looks best. Add a second picture with the outdoor lights off (same framing) and pick the **outdoor lights**: the card fades between the two as they switch. Without the second picture it just dims.
+- **Labels**: pick the entities to pin. Tap a label to toggle a light or switch, open a camera full screen, or open the details of anything else.
+- **Placing**: while editing, tick **Move the labels** and drag each label's dot onto its device (positions are kept in % of the picture). Move the card itself by the blue corner.
+- **Solar**: pick the solar power sensor and the peak in kW; with Move the labels ticked, drag the four corners onto the panels. The panels shimmer faster the more they produce and stop at night.
