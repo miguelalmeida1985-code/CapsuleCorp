@@ -33,17 +33,44 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-      - name: Release the version in config.yaml if it's new
+      - name: Is the version in config.yaml new?
+        id: version
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
           V=$(sed -n 's/^version: *"\{0,1\}\([^"]*\)"\{0,1\} *$/\1/p' panalume/config.yaml)
           if [ -z "$V" ]; then echo "No version found"; exit 1; fi
-          if gh release view "v$V" >/dev/null 2>&1; then echo "v$V is already released"; exit 0; fi
+          echo "v=$V" >> "$GITHUB_OUTPUT"
+          if gh release view "v$V" >/dev/null 2>&1; then echo "v$V is already released"; echo "new=false" >> "$GITHUB_OUTPUT"; else echo "new=true" >> "$GITHUB_OUTPUT"; fi
+      # The tablet / TV app carries the same version, so every release has its APK.
+      - uses: actions/setup-java@v5
+        if: steps.version.outputs.new == 'true'
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: gradle/actions/setup-gradle@v5
+        if: steps.version.outputs.new == 'true'
+      - name: Build the APK
+        if: steps.version.outputs.new == 'true'
+        working-directory: android
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+        run: |
+          ./gradlew --no-daemon assembleRelease
+          cp app/build/outputs/apk/release/app-release.apk "$GITHUB_WORKSPACE/CapsuleOS-${{ steps.version.outputs.v }}.apk"
+      - name: Release it
+        if: steps.version.outputs.new == 'true'
+        env:
+          GH_TOKEN: ${{ github.token }}
+          V: ${{ steps.version.outputs.v }}
+        run: |
           # This version's section of the changelog, without its heading.
           awk -v v="## $V" '$0 == v { f = 1; next } /^## / && f { exit } f' panalume/CHANGELOG.md > notes.md
           if [ ! -s notes.md ]; then echo "- See CHANGELOG.md" > notes.md; fi
-          printf '\n---\nUpdate from **Settings → Apps → CapsuleOS** in Home Assistant. Full history: [CHANGELOG.md](https://github.com/%s/blob/main/panalume/CHANGELOG.md)\n' "$GITHUB_REPOSITORY" >> notes.md
+          printf '\n---\nUpdate from **Settings → Apps → CapsuleOS** in Home Assistant. Tablet / TV app: **CapsuleOS-%s.apk** below. Full history: [CHANGELOG.md](https://github.com/%s/blob/main/panalume/CHANGELOG.md)\n' "$V" "$GITHUB_REPOSITORY" >> notes.md
           # Until 1.0, every release is a beta (pre-release).
           case "$V" in 0.*) PRE=--prerelease; TITLE="CapsuleOS $V (beta)" ;; *) PRE=--latest; TITLE="CapsuleOS $V" ;; esac
-          gh release create "v$V" --target "$GITHUB_SHA" --title "$TITLE" --notes-file notes.md $PRE
+          gh release create "v$V" --target "$GITHUB_SHA" --title "$TITLE" --notes-file notes.md $PRE "CapsuleOS-$V.apk"

@@ -1,0 +1,81 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:fillViewport="true">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:maxWidth="640dp"
+        android:orientation="vertical"
+        android:padding="24dp">
+
+        <TextView
+            style="@style/Capsule.Title"
+            android:text="@string/settings_title" />
+
+        <TextView
+            android:id="@+id/version"
+            style="@style/Capsule.Help" />
+
+        <TextView style="@style/Capsule.Label" android:text="@string/url_label" />
+        <EditText
+            android:id="@+id/url"
+            style="@style/Capsule.Field"
+            android:hint="@string/url_hint"
+            android:inputType="textUri" />
+        <TextView style="@style/Capsule.Help" android:text="@string/url_help" />
+
+        <TextView style="@style/Capsule.Label" android:text="@string/mode_label" />
+        <RadioGroup
+            android:id="@+id/mode"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+            <RadioButton android:id="@+id/mode_auto" style="@style/Capsule.Radio" android:text="@string/mode_auto" />
+            <RadioButton android:id="@+id/mode_tablet" style="@style/Capsule.Radio" android:text="@string/mode_tablet" />
+            <RadioButton android:id="@+id/mode_tv" style="@style/Capsule.Radio" android:text="@string/mode_tv" />
+        </RadioGroup>
+
+        <TextView style="@style/Capsule.Label" android:text="@string/extra_label" />
+        <EditText
+            android:id="@+id/extra"
+            style="@style/Capsule.Field"
+            android:hint="@string/extra_hint"
+            android:inputType="textUri" />
+
+        <TextView style="@style/Capsule.Label" android:text="@string/pin_label" />
+        <EditText
+            android:id="@+id/pin"
+            style="@style/Capsule.Field"
+            android:inputType="numberPassword" />
+        <TextView style="@style/Capsule.Help" android:text="@string/pin_help" />
+
+        <CheckBox
+            android:id="@+id/child_lock"
+            style="@style/Capsule.Check"
+            android:text="@string/child_lock_label" />
+
+        <CheckBox
+            android:id="@+id/kiosk"
+            style="@style/Capsule.Check"
+            android:text="@string/kiosk_label" />
+        <TextView android:id="@+id/kiosk_help" style="@style/Capsule.Help" />
+
+        <Button
+            android:id="@+id/save"
+            style="@style/Capsule.Button"
+            android:text="@string/save" />
+
+        <Button
+            android:id="@+id/exit"
+            style="@style/Capsule.Button"
+            android:text="@string/exit_app" />
+
+        <Button
+            android:id="@+id/remove_owner"
+            style="@style/Capsule.Button"
+            android:text="@string/remove_owner" />
+    </LinearLayout>
+</ScrollView>
