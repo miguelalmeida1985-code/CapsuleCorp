@@ -3,10 +3,13 @@
 
     <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
+    <!-- Front camera, only to notice someone in front of the tablet and light the screen. -->
+    <uses-permission android:name="android.permission.CAMERA" />
 
     <!-- One APK for the tablet (touch) and the TV (remote). -->
     <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
     <uses-feature android:name="android.software.leanback" android:required="false" />
+    <uses-feature android:name="android.hardware.camera.front" android:required="false" />
 
     <application
         android:allowBackup="false"

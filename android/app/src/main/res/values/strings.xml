@@ -15,7 +15,11 @@
     <string name="pin_label">PIN das definições</string>
     <string name="pin_help">Pedido para abrir estas definições. Deixe vazio para não pedir.</string>
     <string name="pin_warning">Com o modo kiosk ligado, defina um PIN: sem ele, qualquer pessoa que descubra os 5 toques pode sair da app.</string>
-    <string name="child_lock_label">Botão de bloqueio para criança (tablet)</string>
+    <string name="motion_label">Acender o ecrã quando alguém se aproxima (câmara frontal)</string>
+    <string name="motion_help">Compara uma imagem minúscula algumas vezes por segundo. Nada é gravado nem enviado. No escuro só o toque acende o ecrã.</string>
+    <string name="sleep_label">Apagar o ecrã sem ninguém por perto ao fim de (segundos)</string>
+    <string name="sleep_help">0 = nunca apaga. Um toque também acende o ecrã.</string>
+    <string name="child_lock_label">Cadeado da app (normalmente desligado: use o cartão de bloqueio do dashboard)</string>
     <string name="kiosk_label">Modo kiosk (fixar a app no ecrã)</string>
     <string name="kiosk_help_owner">Device Owner ativo: a app fica presa no ecrã e é o ecrã inicial.</string>
     <string name="kiosk_help_pinning">Sem Device Owner: o Android pede para afixar a app e mostra como sair. Para bloqueio total, ver android/README.md.</string>

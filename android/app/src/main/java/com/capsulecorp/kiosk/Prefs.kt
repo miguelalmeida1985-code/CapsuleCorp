@@ -27,14 +27,25 @@ class Prefs(private val context: Context) {
         get() = sp.getString("pin", "") ?: ""
         set(v) = sp.edit().putString("pin", v.trim()).apply()
 
+    /** The app's own padlock. Off by default: the dashboard has its own child lock card. */
     var childLock: Boolean
-        get() = sp.getBoolean("childLock", true)
+        get() = sp.getBoolean("childLock", false)
         set(v) = sp.edit().putBoolean("childLock", v).apply()
 
     /** Kept across restarts, so a reboot doesn't unlock the screen. */
     var locked: Boolean
         get() = sp.getBoolean("locked", false)
         set(v) = sp.edit().putBoolean("locked", v).apply()
+
+    /** Wake the screen when the front camera sees someone (tablet only). */
+    var motionWake: Boolean
+        get() = sp.getBoolean("motionWake", true)
+        set(v) = sp.edit().putBoolean("motionWake", v).apply()
+
+    /** Seconds without movement or touch before the screen goes dark; 0 = never. */
+    var sleepAfter: Int
+        get() = sp.getInt("sleepAfter", 120)
+        set(v) = sp.edit().putInt("sleepAfter", v.coerceAtLeast(0)).apply()
 
     var kiosk: Boolean
         get() = sp.getBoolean("kiosk", true)

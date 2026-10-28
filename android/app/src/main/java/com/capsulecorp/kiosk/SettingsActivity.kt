@@ -27,6 +27,8 @@ class SettingsActivity : Activity() {
         val pin = findViewById<EditText>(R.id.pin)
         val childLock = findViewById<CheckBox>(R.id.child_lock)
         val kiosk = findViewById<CheckBox>(R.id.kiosk)
+        val motionWake = findViewById<CheckBox>(R.id.motion_wake)
+        val sleepAfter = findViewById<EditText>(R.id.sleep_after)
         val owner = Kiosk.isOwner(this)
 
         findViewById<TextView>(R.id.version).text = getString(R.string.version_line, BuildConfig.VERSION_NAME)
@@ -41,6 +43,8 @@ class SettingsActivity : Activity() {
         extra.setText(prefs.extra)
         pin.setText(prefs.pin)
         childLock.isChecked = prefs.childLock
+        motionWake.isChecked = prefs.motionWake
+        sleepAfter.setText(prefs.sleepAfter.toString())
         kiosk.isChecked = prefs.kiosk
         findViewById<TextView>(R.id.kiosk_help).setText(if (owner) R.string.kiosk_help_owner else R.string.kiosk_help_pinning)
 
@@ -67,6 +71,8 @@ class SettingsActivity : Activity() {
             prefs.extra = extra.text.toString()
             prefs.pin = pin.text.toString()
             prefs.childLock = childLock.isChecked
+            prefs.motionWake = motionWake.isChecked
+            prefs.sleepAfter = sleepAfter.text.toString().toIntOrNull() ?: prefs.sleepAfter
             if (!childLock.isChecked) prefs.locked = false
             prefs.kiosk = kiosk.isChecked
             finish()

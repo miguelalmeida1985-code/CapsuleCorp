@@ -1,5 +1,6 @@
 package com.capsulecorp.kiosk
 
+import android.Manifest
 import android.app.Activity
 import android.app.ActivityManager
 import android.app.admin.DevicePolicyManager
@@ -8,6 +9,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
 import android.os.Build
+import android.provider.Settings
 
 /**
  * Keeps the app on screen. As Device Owner (set once over ADB) the app is allowed to
@@ -41,6 +43,7 @@ object Kiosk {
                 addCategory(Intent.CATEGORY_DEFAULT)
             }
             dpm.addPersistentPreferredActivity(admin, home, ComponentName(activity, MainActivity::class.java))
+            alwaysOn(dpm, admin, activity)
         }
         // Without Device Owner this asks once to pin the screen.
         if (!inLockTask(activity)) {
@@ -49,6 +52,31 @@ object Kiosk {
             } catch (_: Exception) {
                 // Not allowed here (e.g. some TVs); the app still runs full screen.
             }
+        }
+    }
+
+    /**
+     * The dashboard is the only thing this screen shows: no Android lock screen, the
+     * screen stays on while charging even if the app isn't running, and the camera
+     * for waking the screen is granted without asking.
+     */
+    private fun alwaysOn(dpm: DevicePolicyManager, admin: ComponentName, context: Context) {
+        try {
+            dpm.setKeyguardDisabled(admin, true)
+        } catch (_: Exception) {
+            // Refused while a PIN or pattern lock is set on the tablet.
+        }
+        try {
+            // AC, USB and wireless charging.
+            dpm.setGlobalSetting(admin, Settings.Global.STAY_ON_WHILE_PLUGGED_IN, "7")
+        } catch (_: Exception) {
+        }
+        try {
+            dpm.setPermissionGrantState(
+                admin, context.packageName, Manifest.permission.CAMERA,
+                DevicePolicyManager.PERMISSION_GRANT_STATE_GRANTED,
+            )
+        } catch (_: Exception) {
         }
     }
 
@@ -70,6 +98,10 @@ object Kiosk {
         stop(activity)
         val dpm = dpm(activity)
         dpm.setLockTaskPackages(admin(activity), emptyArray())
+        try {
+            dpm.setKeyguardDisabled(admin(activity), false)
+        } catch (_: Exception) {
+        }
         dpm.clearDeviceOwnerApp(activity.packageName)
     }
 }

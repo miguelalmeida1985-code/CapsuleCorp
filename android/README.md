@@ -8,9 +8,15 @@ the wall tablet and the TV (it also shows up in an Android TV's launcher).
 - **Same version everywhere.** The app's version is CapsuleOS's own
   (`panalume/config.yaml`), and it adds `?app_version=` to the address, so the corner
   badge reads e.g. `v0.1.0 · app 0.1.0` on the tablet, the TV and the NUC.
-- **Tablet:** opens the dashboard with `?noedit`, and has a **child lock**: tap the
-  padlock at the top and touches are ignored (the dashboard keeps updating); hold
-  the padlock for 3 seconds to unlock. The lock survives a restart.
+- **Tablet:** opens the dashboard with `?noedit`. For the child lock, add the
+  dashboard's **Child lock** card; the app has its own padlock too, off by default
+  so there aren't two.
+- **Lights up when someone comes near.** After a while with nobody around (2 min
+  by default) the screen goes dark, and it lights up again when the front camera
+  sees movement or the screen is touched. The camera looks at a tiny picture a few
+  times a second, reduced to a 24 × 16 grid of brightness values; nothing is saved
+  or sent. The screen never really turns off (that would stop the camera): the
+  backlight goes to zero behind a black cover. In the dark only a touch wakes it.
 - **TV:** opens with `?tv`. The remote's arrows and OK go to the page; Back closes
   pop-ups and never leaves the app.
 - **Kiosk mode:** keeps the app on screen (see Device Owner below).
@@ -32,11 +38,18 @@ TV and tablet otherwise.
 **Settings later:** five quick taps in the top-right corner (tablet), or five quick
 presses of Back / the Menu key (TV). A PIN can protect them.
 
+## Setting up the tablet
+
+[provision/](provision/README.md) has a script that does the whole setup over ADB:
+Device Owner, no lock screen, always on, and an optional debloat of the apps a wall
+screen doesn't need.
+
 ## Device Owner (full lockdown, optional)
 
 Without it, Android's screen pinning keeps the app on screen, but a grown-up who
 knows the gesture can leave. As Device Owner the app is locked in: no status bar,
-no home or recents, and it is the home screen, so it opens on boot.
+no home or recents, no Android lock screen, the screen stays on while charging, the
+camera is granted without asking, and it is the home screen, so it opens on boot.
 
 Android only allows this on a device with **no accounts** (no Google, no Xiaomi
 account), so do it right after a factory reset, skipping the accounts:
