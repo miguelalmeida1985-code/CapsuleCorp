@@ -164,11 +164,54 @@ async function coreDirect() {
 }
 const auth = { Authorization: `Bearer ${TOKEN}` };
 
+// One stream from Home Assistant per camera, however many screens show it (the
+// tablet, the TV and a phone on the same camera cost HA and the NUC one stream);
+// each frame goes to every screen watching. It stops when the last one leaves.
+const camFeeds = new Map();
+// At most 10 pictures a second per screen: decoding big JPEGs is what costs a
+// tablet or a TV, and more than that doesn't look smoother on a wall.
+const FRAME_MS = 100;
+
 async function camStream(ws, entity) {
-  const ac = new AbortController();
-  ws.on('close', () => ac.abort());
-  ws.on('error', () => ac.abort());
-  const send = (frame) => ws.readyState === WebSocket.OPEN && ws.bufferedAmount < 1e6 && ws.send(Buffer.from(frame), { binary: true });
+  let feed = camFeeds.get(entity);
+  if (!feed) {
+    feed = { viewers: new Set(), ac: new AbortController() };
+    camFeeds.set(entity, feed);
+    camFeed(entity, feed).finally(() => {
+      if (camFeeds.get(entity) === feed) camFeeds.delete(entity);
+      for (const v of feed.viewers) v.close();
+    });
+  }
+  let last = 0, pending = null, timer = 0;
+  const out = (frame) => {
+    if (ws.readyState !== WebSocket.OPEN || ws.bufferedAmount >= 1e6) return;
+    last = Date.now();
+    ws.send(frame, { binary: true });
+  };
+  // Too soon after the last picture: keep only the newest and send it when it's time.
+  const viewer = {
+    send(frame) {
+      const wait = last + FRAME_MS - Date.now();
+      if (wait <= 0) return out(frame);
+      pending = frame;
+      timer ||= setTimeout(() => { timer = 0; const f = pending; pending = null; if (f) out(f); }, wait);
+    },
+    close: () => ws.close(),
+  };
+  feed.viewers.add(viewer);
+  await new Promise((ok) => { ws.on('close', ok); ws.on('error', ok); });
+  clearTimeout(timer);
+  feed.viewers.delete(viewer);
+  if (!feed.viewers.size) {
+    if (camFeeds.get(entity) === feed) camFeeds.delete(entity);
+    feed.ac.abort();
+  }
+  ws.close();
+}
+
+async function camFeed(entity, feed) {
+  const ac = feed.ac;
+  const send = (frame) => { const f = Buffer.from(frame); for (const v of feed.viewers) v.send(f); };
   let got = false;
   try {
     const base = await coreDirect();
@@ -214,7 +257,7 @@ async function camStream(ws, entity) {
     if (!ac.signal.aborted) console.error('camera stream', entity, e.message);
   }
   // No stream: send snapshots as fast as the camera gives them (max ~2/s).
-  while (!got && !ac.signal.aborted && ws.readyState === WebSocket.OPEN) {
+  while (!got && !ac.signal.aborted) {
     const t0 = Date.now();
     try {
       const r = await fetch(`${HA_URL}/api/camera_proxy/${entity}`, { headers: auth, signal: ac.signal });
@@ -224,7 +267,6 @@ async function camStream(ws, entity) {
     }
     await new Promise((ok) => setTimeout(ok, Math.max(200, 500 - (Date.now() - t0))));
   }
-  ws.close();
 }
 
 server.on('upgrade', (req, socket, head) => {
@@ -238,7 +280,8 @@ server.on('upgrade', (req, socket, head) => {
   }
   if (!req.url.split('?')[0].endsWith('/api/websocket')) return socket.destroy();
   wss.handleUpgrade(req, socket, head, (client) => {
-    const ha = new WebSocket(HA_URL.replace(/^http/, 'ws') + '/api/websocket', { perMessageDeflate: true });
+    // No compression towards HA: it's on the same machine, so it would only cost CPU.
+    const ha = new WebSocket(HA_URL.replace(/^http/, 'ws') + '/api/websocket', { perMessageDeflate: false });
     const queue = [];
     let ready = false;
     ha.on('message', (data, isBinary) => {
