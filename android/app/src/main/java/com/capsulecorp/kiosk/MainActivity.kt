@@ -1,5 +1,6 @@
 package com.capsulecorp.kiosk
 
+import android.Manifest
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.AlertDialog
@@ -14,6 +15,7 @@ import android.os.SystemClock
 import android.text.InputType
 import android.view.Gravity
 import android.view.KeyEvent
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup.LayoutParams.MATCH_PARENT
 import android.view.ViewGroup.LayoutParams.WRAP_CONTENT
@@ -41,11 +43,16 @@ class MainActivity : Activity() {
     private lateinit var web: WebView
     private lateinit var lock: ChildLockView
     private lateinit var offline: TextView
+    private lateinit var sleepCover: View
+    private lateinit var motion: MotionDetector
+    private var asleep = false
+    private var askedCamera = false
     private val handler = Handler(Looper.getMainLooper())
     private var loadedUrl = ""
     private var failed = false
     private val backPresses = ArrayDeque<Long>()
 
+    private val goToSleep = Runnable { sleep() }
     private val retry = Runnable { if (failed && loadedUrl.isNotEmpty()) web.loadUrl(loadedUrl) }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -72,6 +79,12 @@ class MainActivity : Activity() {
         root.addView(web, FrameLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT))
         root.addView(offline, FrameLayout.LayoutParams(MATCH_PARENT, WRAP_CONTENT, Gravity.BOTTOM))
         root.addView(lock, FrameLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT))
+        sleepCover = View(this).apply {
+            setBackgroundColor(Color.BLACK)
+            visibility = View.GONE
+        }
+        root.addView(sleepCover, FrameLayout.LayoutParams(MATCH_PARENT, MATCH_PARENT))
+        motion = MotionDetector(this) { someoneHere() }
         setContentView(root)
 
         // First run: nothing to show until the dashboard's address is set.
@@ -92,6 +105,7 @@ class MainActivity : Activity() {
         }
         if (tv) web.requestFocus()
         if (prefs.url.isNotBlank()) Kiosk.apply(this, prefs.kiosk)
+        startPresence()
     }
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
@@ -107,6 +121,9 @@ class MainActivity : Activity() {
     }
 
     override fun onStop() {
+        motion.stop()
+        handler.removeCallbacks(goToSleep)
+        wake(reschedule = false)
         web.onPause()
         web.pauseTimers()
         super.onStop()
@@ -119,6 +136,7 @@ class MainActivity : Activity() {
     }
 
     override fun onDestroy() {
+        motion.stop()
         handler.removeCallbacksAndMessages(null)
         web.destroy()
         super.onDestroy()
@@ -173,6 +191,79 @@ class MainActivity : Activity() {
         handler.postDelayed(retry, RETRY_MS)
     }
 
+    // Presence: the screen goes dark after a while with nobody around and lights up again
+    // when the front camera sees movement or the screen is touched. It never really turns
+    // off (that would stop the camera); the backlight goes to zero behind a black cover.
+
+    private val presence get() = !prefs.isTv
+
+    private fun startPresence() {
+        if (!presence) {
+            motion.stop()
+            wake(reschedule = false)
+            return
+        }
+        if (prefs.motionWake) {
+            if (motion.hasPermission()) motion.start()
+            else if (!askedCamera) {
+                askedCamera = true
+                requestPermissions(arrayOf(Manifest.permission.CAMERA), CAMERA_REQUEST)
+            }
+        } else {
+            motion.stop()
+        }
+        scheduleSleep()
+    }
+
+    override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
+        super.onRequestPermissionsResult(requestCode, permissions, grantResults)
+        if (requestCode == CAMERA_REQUEST && motion.hasPermission() && prefs.motionWake) motion.start()
+    }
+
+    /** Someone is here: a touch, a key or movement in front of the camera. */
+    private fun someoneHere() {
+        if (asleep) wake() else scheduleSleep()
+    }
+
+    private fun scheduleSleep() {
+        handler.removeCallbacks(goToSleep)
+        val seconds = prefs.sleepAfter
+        if (presence && seconds > 0) handler.postDelayed(goToSleep, seconds * 1000L)
+    }
+
+    private fun sleep() {
+        if (asleep) return
+        asleep = true
+        sleepCover.visibility = View.VISIBLE
+        // Nothing to draw while dark; the page itself keeps running and stays up to date.
+        web.visibility = View.INVISIBLE
+        setBrightness(0f)
+    }
+
+    private fun wake(reschedule: Boolean = true) {
+        if (asleep) {
+            asleep = false
+            setBrightness(WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE)
+            web.visibility = View.VISIBLE
+            sleepCover.visibility = View.GONE
+        }
+        if (reschedule) scheduleSleep()
+    }
+
+    private fun setBrightness(value: Float) {
+        window.attributes = window.attributes.apply { screenBrightness = value }
+    }
+
+    override fun dispatchTouchEvent(event: MotionEvent): Boolean {
+        if (asleep) {
+            // The touch that wakes the screen doesn't press anything.
+            if (event.actionMasked == MotionEvent.ACTION_DOWN) wake()
+            return true
+        }
+        if (event.actionMasked == MotionEvent.ACTION_DOWN) scheduleSleep()
+        return super.dispatchTouchEvent(event)
+    }
+
     @Suppress("DEPRECATION")
     private fun hideSystemBars() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
@@ -192,6 +283,11 @@ class MainActivity : Activity() {
     }
 
     override fun dispatchKeyEvent(event: KeyEvent): Boolean {
+        if (asleep) {
+            if (event.action == KeyEvent.ACTION_DOWN) wake()
+            return true
+        }
+        if (event.action == KeyEvent.ACTION_DOWN) scheduleSleep()
         when (event.keyCode) {
             // Back goes to the page as Escape (closes a pop-up or the views menu) and never
             // leaves the app. Five quick presses open the settings, for remotes without Menu.
@@ -260,5 +356,6 @@ class MainActivity : Activity() {
 
     companion object {
         private const val RETRY_MS = 10_000L
+        private const val CAMERA_REQUEST = 1
     }
 }

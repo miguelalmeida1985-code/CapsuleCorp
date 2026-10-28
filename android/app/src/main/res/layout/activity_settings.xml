@@ -59,6 +59,19 @@
             android:visibility="gone" />
 
         <CheckBox
+            android:id="@+id/motion_wake"
+            style="@style/Capsule.Check"
+            android:text="@string/motion_label" />
+        <TextView style="@style/Capsule.Help" android:text="@string/motion_help" />
+
+        <TextView style="@style/Capsule.Label" android:text="@string/sleep_label" />
+        <EditText
+            android:id="@+id/sleep_after"
+            style="@style/Capsule.Field"
+            android:inputType="number" />
+        <TextView style="@style/Capsule.Help" android:text="@string/sleep_help" />
+
+        <CheckBox
             android:id="@+id/child_lock"
             style="@style/Capsule.Check"
             android:text="@string/child_lock_label" />

@@ -1,0 +1,81 @@
+# Apps the wall tablet doesn't need. Removed for user 0 only (pm uninstall -k --user 0):
+# they stay in the system image and restore.sh brings them back. Missing ones are skipped.
+#
+# Never listed here, on purpose: the WebView (com.google.android.webview), Settings,
+# System UI, the keyboard, the package installer and permission controller, Xiaomi's
+# Security app (com.miui.securitycenter, removing it can stop HyperOS from booting),
+# the Xiaomi launcher (com.miui.home, kept as a fallback home screen), Google Play
+# services and the Play Store (they update the WebView).
+
+# Xiaomi ads, analytics and feeds
+com.miui.analytics
+com.miui.msa.global
+com.miui.daemon
+com.xiaomi.joyose
+com.miui.bugreport
+com.miui.android.fashiongallery
+com.mi.globalminusscreen
+com.miui.yellowpage
+com.miui.hybrid
+com.miui.hybrid.accessory
+com.xiaomi.discover
+com.xiaomi.mipicks
+com.miui.miservice
+com.miui.cleaner
+com.miui.cleanmaster
+
+# Xiaomi apps
+com.mi.globalbrowser
+com.miui.videoplayer
+com.miui.player
+com.miui.notes
+com.miui.compass
+com.miui.weather2
+com.miui.calculator
+com.xiaomi.scanner
+com.miui.screenrecorder
+com.mi.android.globalFileexplorer
+com.xiaomi.midrop
+com.miui.mishare.connectivity
+com.milink.service
+com.xiaomi.glgm
+com.miui.huanji
+com.mipay.wallet.id
+com.xiaomi.payment
+com.miui.cloudbackup
+com.miui.cloudservice
+com.miui.gallery
+com.android.email
+com.android.deskclock
+
+# Google apps
+com.google.android.youtube
+com.google.android.apps.youtube.music
+com.google.android.apps.photos
+com.google.android.gm
+com.google.android.apps.docs
+com.google.android.videos
+com.google.android.apps.maps
+com.google.android.apps.tachyon
+com.google.android.apps.subscriptions.red
+com.google.android.apps.googleassistant
+com.google.android.googlequicksearchbox
+com.google.android.apps.wellbeing
+com.google.android.feedback
+com.google.android.apps.magazines
+com.google.android.apps.kids.home
+com.android.chrome
+
+# Partner apps
+com.netflix.mediaclient
+com.netflix.partner.activation
+com.facebook.katana
+com.facebook.appmanager
+com.facebook.services
+com.facebook.system
+com.amazon.mShop.android.shopping
+com.amazon.appmanager
+com.linkedin.android
+com.spotify.music
+com.booking
+com.einnovation.temu
