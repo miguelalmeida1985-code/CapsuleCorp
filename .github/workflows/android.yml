@@ -9,6 +9,9 @@ on:
   pull_request:
     paths: ['android/**', 'panalume/config.yaml', '.github/workflows/android.yml']
 
+permissions:
+  contents: read
+
 jobs:
   apk:
     runs-on: ubuntu-latest
