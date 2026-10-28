@@ -21,9 +21,11 @@
 <script>
   import Icon from '../components/Icon.svelte';
   import { t, ent } from '../lib/tpl.js';
-  import { stateWord } from '../lib/i18n.svelte.js';
+  import { stateWord, say } from '../lib/i18n.svelte.js';
   import { subscribe } from '../lib/ha.svelte.js';
-  let { props, w } = $props();
+  let { props, w = 0, h = 0 } = $props();
+  // A wide, short card (a top bar) puts everything on one row.
+  const wide = $derived(w > h * 2.6);
   const show = (k) => !props.hide?.[k];
   const e = $derived(ent(props.entity));
   const a = $derived(e?.attributes || {});
@@ -58,22 +60,22 @@
   const bearing = $derived(a.wind_bearing == null ? null : Number(a.wind_bearing));
   const details = $derived.by(() => {
     const out = [];
-    if (a.apparent_temperature != null && show('feels')) out.push({ key: 'feels', icon: 'mdi:thermometer', text: `Feels ${Math.round(a.apparent_temperature)}°` });
+    if (a.apparent_temperature != null && show('feels')) out.push({ key: 'feels', icon: 'mdi:thermometer', text: `${say('Feels', 'Sensação')} ${Math.round(a.apparent_temperature)}°` });
     if (a.humidity != null && show('humidity')) out.push({ key: 'humidity', icon: 'mdi:water-percent', text: `${Math.round(a.humidity)}%` });
     if (a.wind_speed != null && show('wind')) out.push({ key: 'wind', icon: 'mdi:weather-windy', text: `${Math.round(a.wind_speed)} ${a.wind_speed_unit || ''}`.trim(), bearing });
-    if (a.wind_gust_speed != null && show('gust')) out.push({ key: 'gust', icon: 'mdi:weather-windy-variant', text: `Gusts ${Math.round(a.wind_gust_speed)} ${a.wind_gust_speed_unit || a.wind_speed_unit || ''}`.trim() });
+    if (a.wind_gust_speed != null && show('gust')) out.push({ key: 'gust', icon: 'mdi:weather-windy-variant', text: `${say('Gusts', 'Rajadas')} ${Math.round(a.wind_gust_speed)} ${a.wind_gust_speed_unit || a.wind_speed_unit || ''}`.trim() });
     if (a.uv_index != null && show('uv')) out.push({ key: 'uv', icon: 'mdi:white-balance-sunny', text: `UV ${Math.round(a.uv_index)}`, tone: a.uv_index >= 8 ? 'high' : a.uv_index >= 6 ? 'mid' : '' });
     if (day0 && show('rain')) {
-      if (day0.precipitation != null) out.push({ key: 'rain', icon: 'mdi:weather-rainy', text: `Rain ${day0.precipitation} ${day0.precipitation_unit || a.precipitation_unit || ''}`.trim() });
-      else if (day0.precipitation_probability != null) out.push({ key: 'rain', icon: 'mdi:weather-rainy', text: `Rain ${day0.precipitation_probability}%` });
+      if (day0.precipitation != null) out.push({ key: 'rain', icon: 'mdi:weather-rainy', text: `${say('Rain', 'Chuva')} ${day0.precipitation} ${day0.precipitation_unit || a.precipitation_unit || ''}`.trim() });
+      else if (day0.precipitation_probability != null) out.push({ key: 'rain', icon: 'mdi:weather-rainy', text: `${say('Rain', 'Chuva')} ${day0.precipitation_probability}%` });
     }
     return out;
   });
 </script>
 
-<div class="wx">
+<div class="wx" class:wide>
   <div class="now">
-    {#if show('icon')}<Icon icon={WX[e?.state] || 'mdi:weather-cloudy'} size="3.2em" />{/if}
+    {#if show('icon')}<span class="wi {e?.state}"><Icon icon={WX[e?.state] || 'mdi:weather-cloudy'} size={wide ? '2.6em' : '3.2em'} /></span>{/if}
     <div>
       <div class="trow">
         {#if show('temp')}<div class="temp">{a.temperature != null ? Math.round(a.temperature) + '°' : '—'}</div>{/if}
@@ -101,7 +103,7 @@
       {#each items as f}
         <div class="day">
           <div class="d">{label(f)}</div>
-          <Icon icon={WX[f.condition] || 'mdi:weather-cloudy'} size="1.6em" />
+          <span class="wi {f.condition}"><Icon icon={WX[f.condition] || 'mdi:weather-cloudy'} size="1.6em" /></span>
           <div class="hi">{Math.round(f.temperature)}°</div>
           {#if f.templow != null && show('low')}<div class="lo">{Math.round(f.templow)}°</div>{/if}
         </div>
@@ -113,7 +115,10 @@
 <style>
   .wx { height: 100%; display: flex; flex-direction: column; justify-content: space-between; gap: 8px; }
   .now { display: flex; align-items: center; gap: 14px; }
-  .temp { font-size: 2.2em; font-weight: 600; line-height: 1; }
+  .temp { font-family: var(--display); font-size: 2.2em; font-weight: 200; line-height: 1; }
+  .wi { display: inline-flex; color: #dfe8f5; filter: drop-shadow(0 4px 6px rgba(0,0,0,.4)); }
+  .wi.sunny, .wi.partlycloudy { color: var(--sun); filter: drop-shadow(0 0 10px rgba(255,184,77,.6)); }
+  .wi.rainy, .wi.pouring, .wi.lightning-rainy { color: var(--cool); filter: drop-shadow(0 0 8px rgba(92,203,255,.5)); }
   /* Today's high / low sit beside the temperature, so they take no extra height. */
   .trow { display: flex; align-items: center; gap: 8px; }
   .hl { display: flex; flex-direction: column; font-size: .78em; font-weight: 600; line-height: 1.2; }
@@ -127,6 +132,11 @@
   .fc { display: flex; justify-content: space-between; gap: 4px; }
   .day { display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: .85em; flex: 1; }
   .d { color: var(--muted); }
-  .hi { font-weight: 600; }
+  .hi { font-family: var(--display); font-weight: 400; }
+  .wide { flex-direction: row; align-items: center; justify-content: flex-start; gap: 16px; }
+  .wide .now { flex: none; }
+  .wide .details { flex: 1; min-width: 0; flex-direction: column; flex-wrap: nowrap; gap: 2px; overflow: hidden; }
+  .wide .fc { flex: none; gap: 0; }
+  .wide .day { padding: 0 14px; border-left: 1px solid var(--edge); font-size: .75em; }
   .lo { color: var(--muted); }
 </style>

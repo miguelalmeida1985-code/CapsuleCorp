@@ -47,3 +47,15 @@ A picture of your house with live glass labels pinned to it. Add → **Info → 
 - **Labels**: pick the entities to pin. Tap a label to toggle a light or switch, open a camera full screen, or open the details of anything else.
 - **Placing**: while editing, tick **Move the labels** and drag each label's dot onto its device (positions are kept in % of the picture). Move the card itself by the blue corner.
 - **Solar**: pick the solar power sensor and the peak in kW; with Move the labels ticked, drag the four corners onto the panels. The panels shimmer faster the more they produce and stop at night.
+- **Night sky and second lines**: the house sits on a night sky with stars (untick **Night sky** to show the picture alone). Each label has a second line: mode and target for air conditioners, "A aquecer" for the water heater, battery or Online for cameras. Write your own under **Labels' second lines**, one per line, e.g. `binary_sensor.doorbell: Último toque 17:12` (templates work). With a solar sensor, a Solar label sits over the panels.
+
+## CapsuleOS look and cards
+
+CapsuleOS has its own look: night background, frosted glass cards, Sora for numbers and titles, Figtree for text, warm glows for lights and the sun, cool ones for climate. **Reset theme** in the editor brings it back. Words on these cards follow Home Assistant's language (Portuguese or English).
+
+- **Cameras** (Media): the cameras live, the first one big and the rest two to a row, with name, battery (from a `<camera>_battery` sensor) or "Ao vivo", and full screen on a tap. Pick a doorbell sensor and its camera glows while it rings.
+- **Energy now** (Energy): production now in big numbers, solar / house / grid / today, and today's curve since midnight, with the Solcast forecast ahead. Fills itself in for Fox ESS.
+- **Scenes** (Controls): scene, script or switch buttons in a grid; switches glow while on.
+- **Air conditioners** (Controls): several side by side, each with the room's temperature, the target − / +, its mode and on / off. Room labels under **Room labels**, e.g. `climate.sensibo: Quarto meninos · Sensibo`.
+- **Device list** (Controls): devices in glass rows with a status line and a switch, a value or "só leitura" (for those under **Show only**). Good for equipment and for system status.
+- The clock, weather (one row when the card is wide and short), navigation tabs and water heater use the same style.

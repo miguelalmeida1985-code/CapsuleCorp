@@ -24,7 +24,7 @@
     return () => clearTimeout(timer);
   });
   const time = $derived(now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: props.seconds ? '2-digit' : undefined, hour12: !!props.hour12 }));
-  const date = $derived(now.toLocaleDateString([], { weekday: 'long', day: 'numeric', month: 'long' }));
+  const date = $derived(now.toLocaleDateString([], { weekday: 'long', day: 'numeric', month: 'long' }).replace(/^./, (c) => c.toUpperCase()));
 </script>
 
 <div class="clock">
@@ -35,6 +35,8 @@
 
 <style>
   .clock { height: 100%; display: flex; flex-direction: column; justify-content: center; }
-  .time { font-size: 3.4em; font-weight: 300; letter-spacing: -.03em; line-height: 1; font-variant-numeric: tabular-nums; }
+  /* Thin, with a cool glow: the gradient is painted into the text once, the glow is a static drop shadow. */
+  .time { font-family: var(--display); font-size: 3.6em; font-weight: 200; letter-spacing: -.035em; line-height: 1; font-variant-numeric: tabular-nums;
+    background: linear-gradient(180deg, #fff, #a9c3e8); -webkit-background-clip: text; background-clip: text; color: transparent; filter: drop-shadow(0 0 22px rgba(120,170,255,.35)); }
   .date { color: var(--muted); margin-top: 6px; font-size: 1em; }
 </style>

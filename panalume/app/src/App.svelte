@@ -99,7 +99,7 @@
     `--text:${th.text}`, `--muted:${th.muted}`, `--accent:${th.accent}`, `--on:${th.on}`,
     `--card-bg:${th.cardBg}`, `--card-border:${th.cardBorder}`, `--card-shadow:${th.cardShadow}`,
     `--radius:${th.cardRadius}px`, `--pad:${th.cardPadding}px`, `--blur:${th.cardBlur}px`, `--sidebar-bg:${th.sidebarBg}`,
-    `--font:${th.font}`, `--page-bg:${th.background}`,
+    `--font:${th.font}`, `--display:${th.display || th.font}`, `--page-bg:${th.background}`,
   ].join(';') : '');
   $effect(() => { document.documentElement.style.cssText = rootStyle; });
 

@@ -23,19 +23,21 @@ export const GRID = 10;
 
 const GOOGLE_INTER = 'https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap';
 
+// CapsuleOS's own look: night, frosted glass, warm (lights, sun) and cool (climate) glows.
 export const DEFAULT_THEME = {
-  font: 'Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif',
-  fontUrl: '', // Inter is built in (src/inter.css); a Google Fonts link here loads another font
-  background: 'radial-gradient(1200px 800px at 10% -10%, #1d2a4a 0%, transparent 60%), radial-gradient(1000px 700px at 110% 110%, #2a1d3d 0%, transparent 55%), #0b0f17',
-  text: '#eef2f8',
-  muted: 'rgba(238,242,248,.6)',
-  accent: '#7aa2ff',
-  on: '#ffc861',
-  cardBg: 'rgba(255,255,255,.06)',
-  cardBorder: '1px solid rgba(255,255,255,.08)',
-  cardRadius: 22,
-  cardBlur: 18,
-  cardShadow: '0 8px 30px rgba(0,0,0,.25)',
+  font: 'Figtree, Inter, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif',
+  display: 'Sora, Figtree, system-ui, sans-serif', // numbers and titles
+  fontUrl: '', // Figtree, Sora and Inter are built in (src/capsule-fonts.css, src/inter.css); a Google Fonts link here loads another font
+  background: 'radial-gradient(900px 600px at 18% -10%, rgba(64,110,200,.22), transparent 60%), radial-gradient(800px 500px at 50% 112%, rgba(255,170,70,.10), transparent 60%), radial-gradient(700px 600px at 105% 40%, rgba(70,200,255,.08), transparent 60%), #070c16',
+  text: '#edf2fa',
+  muted: '#93a4bd',
+  accent: '#5ccbff',
+  on: '#ffb84d',
+  cardBg: 'linear-gradient(180deg, rgba(40,58,90,.42), rgba(10,16,30,.58))',
+  cardBorder: '1px solid rgba(150,180,230,.16)',
+  cardRadius: 20,
+  cardBlur: 16,
+  cardShadow: 'inset 0 1px 0 rgba(255,255,255,.09), 0 24px 48px -24px rgba(0,0,0,.85), 0 2px 6px rgba(0,0,0,.3)',
   cardPadding: 16,
   cardScale: 100,
   sidebarBg: 'rgba(255,255,255,.03)',
