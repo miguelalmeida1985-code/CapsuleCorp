@@ -32,13 +32,21 @@
                 <category android:name="android.intent.category.LAUNCHER" />
                 <category android:name="android.intent.category.LEANBACK_LAUNCHER" />
             </intent-filter>
-            <!-- Lets CapsuleOS be the home screen, so it opens on boot and Home goes back to it. -->
+        </activity>
+
+        <!-- The home screen role, off until a tablet makes the app its Device Owner (Kiosk.kt).
+             Always on, it made Android ask "which launcher?" on screens that have their own. -->
+        <activity-alias
+            android:name=".Home"
+            android:enabled="false"
+            android:exported="true"
+            android:targetActivity=".MainActivity">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.HOME" />
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
-        </activity>
+        </activity-alias>
 
         <activity
             android:name=".SettingsActivity"

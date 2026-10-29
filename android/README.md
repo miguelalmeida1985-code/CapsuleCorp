@@ -17,7 +17,8 @@ the wall tablet and the TV (it also shows up in an Android TV's launcher).
   times a second, reduced to a 24 × 16 grid of brightness values; nothing is saved
   or sent. The screen never really turns off (that would stop the camera): the
   backlight goes to zero behind a black cover. In the dark only a touch wakes it.
-- **TV:** opens with `?tv`. The remote's arrows and OK go to the page; Back closes
+- **TV:** a normal app that the TV's own launcher opens (it never asks to be the
+  home screen there, and kiosk mode is off). Opens with `?tv`. The remote's arrows and OK go to the page; Back closes
   pop-ups and never leaves the app.
 - **Kiosk mode:** keeps the app on screen (see Device Owner below).
 

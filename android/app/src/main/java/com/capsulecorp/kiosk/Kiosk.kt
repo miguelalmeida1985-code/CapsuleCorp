@@ -8,6 +8,7 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
+import android.content.pm.PackageManager
 import android.os.Build
 import android.provider.Settings
 
@@ -42,7 +43,8 @@ object Kiosk {
                 addCategory(Intent.CATEGORY_HOME)
                 addCategory(Intent.CATEGORY_DEFAULT)
             }
-            dpm.addPersistentPreferredActivity(admin, home, ComponentName(activity, MainActivity::class.java))
+            setHome(activity, true)
+            dpm.addPersistentPreferredActivity(admin, home, homeAlias(activity))
             alwaysOn(dpm, admin, activity)
         }
         // Without Device Owner this asks once to pin the screen.
@@ -89,6 +91,18 @@ object Kiosk {
             }
         }
         if (isOwner(activity)) dpm(activity).clearPackagePersistentPreferredActivities(admin(activity), activity.packageName)
+        setHome(activity, false)
+    }
+
+    private fun homeAlias(context: Context) = ComponentName(context.packageName, "${context.packageName}.Home")
+
+    /** Offers the app as a home screen only while it's a kiosk; otherwise the screen keeps its own launcher. */
+    private fun setHome(context: Context, on: Boolean) {
+        val state = if (on) PackageManager.COMPONENT_ENABLED_STATE_ENABLED else PackageManager.COMPONENT_ENABLED_STATE_DISABLED
+        val pm = context.packageManager
+        if (pm.getComponentEnabledSetting(homeAlias(context)) != state) {
+            pm.setComponentEnabledSetting(homeAlias(context), state, PackageManager.DONT_KILL_APP)
+        }
     }
 
     /** Gives up Device Owner, so the tablet can be set up normally again. */
