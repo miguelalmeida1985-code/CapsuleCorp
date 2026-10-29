@@ -19,7 +19,8 @@ the wall tablet and the TV (it also shows up in an Android TV's launcher).
   backlight goes to zero behind a black cover. In the dark only a touch wakes it.
 - **TV:** a normal app that the TV's own launcher opens (it never asks to be the
   home screen there, and kiosk mode is off). Opens with `?tv`. The remote's arrows and OK go to the page; Back closes
-  pop-ups and never leaves the app.
+  pop-ups and never leaves the app. A launcher that opens the app from a remote button with the
+  boolean extra `toggle` gets the dashboard put away when the same button is pressed again.
 - **Kiosk mode:** keeps the app on screen (see Device Owner below).
 
 ## Install
