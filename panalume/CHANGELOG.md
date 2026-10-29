@@ -1,5 +1,11 @@
 # Changelog
 
+## 0.4.0
+
+- **Child lock card.** Tap the padlock to lock every touch on the tablet while the dashboard stays live; hold it 3 s to unlock.
+- **Cameras on a TV.** With `?tv` only one camera plays video at a time (a full-screen one first) and the others show pictures: a second video made the TV's decoder manager close the app.
+- **Tablet / TV app.** The tablet's screen lights up when someone comes near and goes dark when nobody is there (front camera, never a real screen-off), the Android lock screen is off under Device Owner, and a setup script prepares the tablet. On a TV the app no longer asks to be the home screen, and a TV launcher's remote button can open and close it.
+
 ## 0.3.0
 
 - **The hall dashboard look.** CapsuleOS now looks the way it was designed: a night background, frosted glass cards, Sora for numbers and titles and Figtree for text, with warm glows for the lights and the sun and cool ones for climate. **Reset theme** in the editor brings it back.
