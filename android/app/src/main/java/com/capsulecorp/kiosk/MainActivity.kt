@@ -50,6 +50,7 @@ class MainActivity : Activity() {
     private val handler = Handler(Looper.getMainLooper())
     private var loadedUrl = ""
     private var failed = false
+    private var inFront = false
     private val backPresses = ArrayDeque<Long>()
 
     private val goToSleep = Runnable { sleep() }
@@ -93,6 +94,7 @@ class MainActivity : Activity() {
 
     override fun onResume() {
         super.onResume()
+        inFront = true
         hideSystemBars()
         val tv = prefs.isTv
         lock.showLock = !tv && prefs.childLock
@@ -107,6 +109,13 @@ class MainActivity : Activity() {
         // Kiosk mode is for the tablet; a TV keeps its own launcher and Home button.
         if (prefs.url.isNotBlank()) Kiosk.apply(this, prefs.kiosk && !tv)
         startPresence()
+    }
+
+    // A TV launcher can open the app from a remote button with EXTRA_TOGGLE: the same button
+    // pressed again puts the dashboard away and whatever was underneath (HDMI, Live TV) comes back.
+    override fun onNewIntent(intent: Intent) {
+        super.onNewIntent(intent)
+        if (inFront && prefs.isTv && intent.getBooleanExtra(EXTRA_TOGGLE, false)) moveTaskToBack(true)
     }
 
     override fun onWindowFocusChanged(hasFocus: Boolean) {
@@ -132,6 +141,7 @@ class MainActivity : Activity() {
 
     override fun onPause() {
         super.onPause()
+        inFront = false
         // Keep the direct-access cookie on disk, so a power cut doesn't ask for ?key= again.
         CookieManager.getInstance().flush()
     }
@@ -356,6 +366,7 @@ class MainActivity : Activity() {
     }
 
     companion object {
+        const val EXTRA_TOGGLE = "toggle"
         private const val RETRY_MS = 10_000L
         private const val CAMERA_REQUEST = 1
     }
