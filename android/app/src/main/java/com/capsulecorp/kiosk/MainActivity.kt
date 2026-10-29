@@ -104,7 +104,8 @@ class MainActivity : Activity() {
             web.loadUrl(url)
         }
         if (tv) web.requestFocus()
-        if (prefs.url.isNotBlank()) Kiosk.apply(this, prefs.kiosk)
+        // Kiosk mode is for the tablet; a TV keeps its own launcher and Home button.
+        if (prefs.url.isNotBlank()) Kiosk.apply(this, prefs.kiosk && !tv)
         startPresence()
     }
 
