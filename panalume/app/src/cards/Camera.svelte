@@ -21,6 +21,7 @@
   import { t, ent } from '../lib/tpl.js';
   import { name } from '../lib/entity.js';
   import { haImage, send, callService, subscribe } from '../lib/ha.svelte.js';
+  import { videoTicket, wantVideo, mayPlay } from '../lib/videos.svelte.js';
   let { props, w = 0, h = 0 } = $props();
   const e = $derived(ent(props.entity));
   // Just the id, so attribute updates (e.g. the rotating access token) don't restart streams.
@@ -43,7 +44,11 @@
   });
   // Live uses the camera's real video stream when it has one; otherwise (or if
   // that fails) a stream of pictures. Video mode always uses the stream.
-  const video = $derived(!!camId && (props.mode === 'video' || (canStream && failed >= 2) || (props.mode === 'live' && !!caps?.length && !noStream)));
+  const wantsVideo = $derived(!!camId && (props.mode === 'video' || (canStream && failed >= 2) || (props.mode === 'live' && !!caps?.length && !noStream)));
+  // On a TV only one camera at a time gets video (lib/videos); the rest stay on pictures.
+  const me = videoTicket();
+  $effect(() => { if (wantsVideo) return wantVideo(me, !!props.main); });
+  const video = $derived(wantsVideo && mayPlay(me));
   const live = $derived(props.mode === 'live' && !!camId && !video && caps != null);
   let broken = $state(false);
   let vid = $state();

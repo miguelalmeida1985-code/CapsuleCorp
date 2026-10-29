@@ -59,7 +59,7 @@
   {:else if d === 'cover'}
     <div class="box" style="height:120px"><Cover props={{ entity }} /></div>
   {:else if d === 'camera' || d === 'image'}
-    <div class="box cam" style="height:300px"><Camera props={{ entity, mode: 'live', fit: 'contain' }} /></div>
+    <div class="box cam" style="height:300px"><Camera props={{ entity, mode: 'live', fit: 'contain', main: true }} /></div>
   {:else if d === 'weather'}
     <div class="box" style="height:210px"><Weather props={{ entity, forecast: 'daily', days: 7 }} /></div>
   {:else if d === 'alarm_control_panel'}
