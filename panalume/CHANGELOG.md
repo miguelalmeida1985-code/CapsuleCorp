@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.1
+
+- **Device list: your own names.** A new **Names** field (`entity_id: name`) gives each device a short name in your language when Home Assistant's is long or in English.
+
 ## 0.4.0
 
 - **Child lock card.** Tap the padlock to lock every touch on the tablet while the dashboard stays live; hold it 3 s to unlock.
