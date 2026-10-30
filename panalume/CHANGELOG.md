@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.2
+
+- **Doorbell pop-up.** When the Cameras card's doorbell sensor rings, its camera opens full screen on every screen and closes itself after a minute (**Close it after**; `?nobell` keeps a screen out). The CapsuleOS app lights a dark tablet for it.
+
 ## 0.4.1
 
 - **Device list: your own names.** A new **Names** field (`entity_id: name`) gives each device a short name in your language when Home Assistant's is long or in English.
