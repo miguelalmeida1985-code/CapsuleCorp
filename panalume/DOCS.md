@@ -53,7 +53,7 @@ A picture of your house with live glass labels pinned to it. Add → **Info → 
 
 CapsuleOS has its own look: night background, frosted glass cards, Sora for numbers and titles, Figtree for text, warm glows for lights and the sun, cool ones for climate. **Reset theme** in the editor brings it back. Words on these cards follow Home Assistant's language (Portuguese or English).
 
-- **Cameras** (Media): the cameras live, the first one big and the rest two to a row, with name, battery (from a `<camera>_battery` sensor) or "Ao vivo", and full screen on a tap. Pick a doorbell sensor and its camera glows while it rings.
+- **Cameras** (Media): the cameras live, the first one big and the rest two to a row, with name, battery (from a `<camera>_battery` sensor) or "Ao vivo", and full screen on a tap. Pick a doorbell sensor and its camera glows while it rings; a ring also opens that camera full screen on every screen for a minute (**Close it after**, untick **Ring opens…** to turn it off, or add `?nobell` to one screen's address). The CapsuleOS app lights a dark tablet for it.
 - **Energy now** (Energy): production now in big numbers, solar / house / grid / today, and today's curve since midnight, with the Solcast forecast ahead. Fills itself in for Fox ESS.
 - **Scenes** (Controls): scene, script or switch buttons in a grid; switches glow while on.
 - **Air conditioners** (Controls): several side by side, each with the room's temperature, the target − / +, its mode and on / off. Room labels under **Room labels**, e.g. `climate.sensibo: Quarto meninos · Sensibo`.
