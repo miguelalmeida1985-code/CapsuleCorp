@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.4
+
+- **Night report: weather fixes.** Hours with no rain chance (IPMA sends -99) no longer show "-99%", and hours before sunrise or after sunset show the moon instead of the sun.
+
 ## 0.4.3
 
 - **Night report.** A new card and a frosted-glass report over the dashboard: who the cameras saw last night and when, when the lights or plugs you pick (a garland, say) came on and went off, and today's weather in detail. A wall tablet opens it by itself the first time it wakes up in the morning, and it closes itself after a minute and a half. The CapsuleOS app now tells the page when the screen wakes.
