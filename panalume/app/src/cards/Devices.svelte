@@ -7,6 +7,7 @@
       { key: 'title', label: 'Title', type: 'text' },
       { key: 'icon', label: 'Title icon', type: 'icon' },
       { key: 'entities', label: 'Devices', type: 'entities' },
+      { key: 'names', label: 'Names (one per device: entity_id: name, templates ok)', type: 'textarea', hint: 'e.g. switch.boiler_eco_mode: Modo eco. Without one, the name from Home Assistant shows.' },
       { key: 'read_only', label: 'Show only, no switch (e.g. the well pump)', type: 'entities' },
       { key: 'lines', label: 'Second lines (one per device: entity_id: text, templates ok)', type: 'textarea', hint: 'e.g. switch.well_pump: Rega às {{ states("input_datetime.rega") }}. Without one, the device\'s state shows.' },
     ],
@@ -25,7 +26,10 @@
   let { props } = $props();
 
   const COLOR = { light: 'var(--sun)', switch: 'var(--sun)', climate: 'var(--cool)', water_heater: 'var(--hot)', sensor: 'var(--sun)', binary_sensor: 'var(--ok)', update: 'var(--cool)' };
-  const lines = $derived(Object.fromEntries(String(props.lines || '').split('\n').map((l) => l.match(/^\s*([a-z_]+\.[a-z0-9_]+)\s*:\s*(.+)$/)).filter(Boolean).map((m) => [m[1], m[2]])));
+  // "entity_id: text" lines, one per device.
+  const perEntity = (s) => Object.fromEntries(String(s || '').split('\n').map((l) => l.match(/^\s*([a-z_]+\.[a-z0-9_]+)\s*:\s*(.+)$/)).filter(Boolean).map((m) => [m[1], m[2]]));
+  const lines = $derived(perEntity(props.lines));
+  const names = $derived(perEntity(props.names));
   const rows = $derived((props.entities || []).map((id) => {
     const e = ent(id);
     const d = domain(id);
@@ -34,7 +38,7 @@
     const on = isActive(e);
     const numeric = e && e.state !== '' && !Number.isNaN(Number(e.state));
     const sub = lines[id] ? t(lines[id]) : unavailable(e) ? say('Unavailable', 'Indisponível') : numeric ? '' : stateText(e);
-    return { id, e, d, ro, sw, on, sub, value: numeric ? stateText(e, Number.isInteger(Number(e.state)) ? { digits: 0 } : {}) : '', dot: unavailable(e) ? 'bad' : on || numeric || d === 'binary_sensor' ? 'ok' : 'off', color: on || numeric ? COLOR[d] || 'var(--cool)' : '' };
+    return { id, e, d, ro, sw, on, sub, n: names[id] ? t(names[id]) : name(e, '') || id, value: numeric ? stateText(e, Number.isInteger(Number(e.state)) ? { digits: 0 } : {}) : '', dot: unavailable(e) ? 'bad' : on || numeric || d === 'binary_sensor' ? 'ok' : 'off', color: on || numeric ? COLOR[d] || 'var(--cool)' : '' };
   }));
 </script>
 
@@ -45,11 +49,11 @@
       <div class="dev" role="button" tabindex="0" data-stop onclick={() => (app.popup = { entity: r.id })} onkeydown={(ev) => ev.key === 'Enter' && (app.popup = { entity: r.id })}>
         <span class="ic" style={r.color ? `--c:${r.color}` : ''}><Icon icon={entityIcon(r.e)} size="17px" /></span>
         <span class="txt">
-          <span class="n">{name(r.e, '') || r.id}</span>
+          <span class="n">{r.n}</span>
           {#if r.sub}<span class="s"><span class="dot {r.dot}"></span>{r.sub}</span>{/if}
         </span>
         {#if r.sw}
-          <button class="toggle" aria-pressed={r.on} aria-label={name(r.e)} onclick={(ev) => { ev.stopPropagation(); r.e && toggle(r.e); }}></button>
+          <button class="toggle" aria-pressed={r.on} aria-label={r.n} onclick={(ev) => { ev.stopPropagation(); r.e && toggle(r.e); }}></button>
         {:else if r.value}
           <span class="r num" style={r.color ? `color:${r.color}` : ''}>{r.value}</span>
         {:else if r.ro}
