@@ -75,8 +75,21 @@
     return list.filter((_, i) => i % step === 0).slice(0, 9);
   });
   const cond = (s) => stateWord('weather', null, s) || (s || '').replace(/-/g, ' ');
-  const rain = $derived(day?.precipitation_probability ?? (hours.length ? Math.max(...hours.map((f) => Number(f.precipitation_probability) || 0)) : null));
+  // A percentage, or null when the forecast has none (IPMA sends -99 for "no value").
+  const pct = (v) => { const n = v == null || v === '' ? NaN : Number(v); return Number.isFinite(n) && n >= 0 ? n : null; };
+  const hourRain = $derived(hours.map((f) => pct(f.precipitation_probability)).filter((n) => n != null));
+  const rain = $derived(pct(day?.precipitation_probability) ?? (hourRain.length ? Math.max(...hourRain) : null));
   const sun = $derived(states.get('sun.sun')?.attributes || {});
+  // Hours before sunrise or after sunset show the moon instead of the sun.
+  const tod = (ms) => { const d = new Date(ms); return d.getHours() * 60 + d.getMinutes(); };
+  const dark = (ms) => {
+    const up = Date.parse(sun.next_rising), down = Date.parse(sun.next_setting);
+    if (Number.isNaN(up) || Number.isNaN(down)) return false;
+    const m = tod(ms);
+    return m < tod(up) || m >= tod(down);
+  };
+  const NIGHT = { sunny: 'mdi:weather-night', 'clear-night': 'mdi:weather-night', partlycloudy: 'mdi:weather-night-partly-cloudy' };
+  const hourIcon = (f) => (dark(Date.parse(f.datetime)) && NIGHT[f.condition]) || WX[f.condition] || 'mdi:weather-cloudy';
   const facts = $derived.by(() => {
     const out = [];
     if (a.apparent_temperature != null) out.push(['mdi:thermometer', say('Feels like', 'Sensação'), `${Math.round(a.apparent_temperature)}°`]);
@@ -153,10 +166,10 @@
           {#if hours.length}
             <div class="hourly" style="--n:{hours.length}">
               {#each hours as f}
-                {@const p = Number(f.precipitation_probability) || 0}
+                {@const p = pct(f.precipitation_probability) ?? 0}
                 <div class="h">
                   <span class="t">{Math.round(f.temperature)}°</span>
-                  <span class="wi {f.condition}"><Icon icon={WX[f.condition] || 'mdi:weather-cloudy'} size="1.5em" /></span>
+                  <span class="wi {f.condition}" class:moon={dark(Date.parse(f.datetime))}><Icon icon={hourIcon(f)} size="1.5em" /></span>
                   <span class="rain" class:some={p >= 20}><i style="height:{Math.max(2, p)}%"></i></span>
                   <span class="pp">{p ? p + '%' : ''}</span>
                   <span class="hh">{clock(Date.parse(f.datetime))}</span>
@@ -226,6 +239,7 @@
   .lo { color: var(--muted); }
   .wi { display: inline-flex; color: #dfe8f5; filter: drop-shadow(0 4px 8px rgba(0,0,0,.4)); }
   .wi.sunny, .wi.partlycloudy { color: var(--sun); filter: drop-shadow(0 0 14px rgba(255,184,77,.7)); }
+  .wi.moon { color: #cfe0ff; filter: drop-shadow(0 0 10px rgba(160,190,255,.5)); }
   .wi.rainy, .wi.pouring, .wi.lightning-rainy { color: var(--cool); filter: drop-shadow(0 0 10px rgba(92,203,255,.55)); }
   .hourly { position: relative; display: grid; grid-template-columns: repeat(var(--n), minmax(0, 1fr)); padding-top: 4px; margin-bottom: 16px; }
   .h { display: flex; flex-direction: column; align-items: center; gap: 4px; font-variant-numeric: tabular-nums; }
