@@ -23,6 +23,7 @@ import android.view.WindowInsets
 import android.view.WindowInsetsController
 import android.view.WindowManager
 import android.webkit.CookieManager
+import android.webkit.JavascriptInterface
 import android.webkit.RenderProcessGoneDetail
 import android.webkit.WebResourceError
 import android.webkit.WebResourceRequest
@@ -170,6 +171,7 @@ class MainActivity : Activity() {
             displayZoomControls = false
             userAgentString = "$userAgentString CapsuleOS/${BuildConfig.VERSION_NAME}"
         }
+        addJavascriptInterface(Bridge(), "CapsuleKiosk")
         webViewClient = object : WebViewClient() {
             // Every link stays inside the app.
             override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest) = false
@@ -259,6 +261,14 @@ class MainActivity : Activity() {
             sleepCover.visibility = View.GONE
         }
         if (reschedule) scheduleSleep()
+    }
+
+    /** What the page may ask of the app: only to light the screen (the doorbell rang). */
+    private inner class Bridge {
+        @JavascriptInterface
+        fun wake() {
+            handler.post { this@MainActivity.wake() }
+        }
     }
 
     private fun setBrightness(value: Float) {

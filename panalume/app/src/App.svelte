@@ -15,6 +15,7 @@
   import { cards as cardTypes, preload } from './lib/registry.js';
   import { reloadFromServer, startView } from './lib/config.svelte.js';
   import { lock, startHold, cancelHold, nudge } from './lib/childlock.svelte.js';
+  import { isActive, name } from './lib/entity.js';
 
   let vw = $state(innerWidth);
   // The start screen stays up until the first connection to Home Assistant, so the
@@ -147,6 +148,31 @@
     const home = startView();
     if (home && app.view !== home) setView(home);
   }, 10e3);
+
+  // Doorbell: when a Cameras card's doorbell sensor starts ringing, its camera opens full
+  // screen on every screen (and lights a dark kiosk tablet), closing itself after a minute.
+  // ?nobell keeps a screen out of it.
+  const bellParam = param('nobell') == null;
+  const bells = $derived(app.config && bellParam ? Object.values(app.config.cards).filter((c) => c.type === 'cameras' && c.props?.bell && c.props.bell_popup !== false) : []);
+  const rang = {};
+  let bellTimer;
+  $effect(() => {
+    for (const c of bells) {
+      const e = states.get(c.props.bell);
+      if (!e) continue;
+      const on = isActive(e), was = rang[e.entity_id];
+      rang[e.entity_id] = on;
+      // Only a new ring: not one already going when the page loaded.
+      if (!on || was !== false || app.editing) continue;
+      const cam = c.props.bell_camera || (c.props.entities || []).find((id) => id?.startsWith('camera.'));
+      if (!cam) continue;
+      app.popup = { camera: cam, name: name(states.get(cam), ''), bell: true };
+      lastTouch = Date.now();
+      try { window.CapsuleKiosk?.wake(); } catch {}
+      clearTimeout(bellTimer);
+      bellTimer = setTimeout(() => { if (app.popup?.bell) app.popup = null; }, Math.max(10, Number(c.props.bell_secs) || 60) * 1000);
+    }
+  });
 
   // ?tv: the remote moves a highlight between cards and buttons; Back closes pop-ups and menus.
   if (liteEffects) document.documentElement.classList.add('lite');

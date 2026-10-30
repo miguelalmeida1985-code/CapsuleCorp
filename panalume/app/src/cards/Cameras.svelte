@@ -2,13 +2,15 @@
   export const meta = {
     type: 'cameras', name: 'Cameras', icon: 'mdi:cctv', category: 'Media',
     size: { w: 520, h: 440 }, tap: 'none',
-    defaults: { entities: [], mode: 'live', bell: '', big: true },
+    defaults: { entities: [], mode: 'live', bell: '', big: true, bell_popup: true, bell_secs: 60 },
     fields: [
       { key: 'entities', label: 'Cameras (the first one is the big one)', type: 'entities', domain: ['camera', 'image'] },
       { key: 'big', label: 'First camera big', type: 'bool' },
       { key: 'mode', label: 'Mode', type: 'select', options: [{ value: 'live', label: 'Live' }, { value: 'snapshot', label: 'Snapshot' }, { value: 'video', label: 'Video stream' }] },
       { key: 'bell', label: 'Doorbell pressed (binary sensor; its camera glows)', type: 'entity', domain: 'binary_sensor' },
       { key: 'bell_camera', label: 'Doorbell camera', type: 'entity', domain: 'camera' },
+      { key: 'bell_popup', label: 'Ring opens the doorbell camera full screen on every screen', type: 'bool' },
+      { key: 'bell_secs', label: 'Close it after (seconds)', type: 'number' },
     ],
   };
 </script>
