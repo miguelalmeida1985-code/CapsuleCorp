@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.3
+
+- **Night report.** A new card and a frosted-glass report over the dashboard: who the cameras saw last night and when, when the lights or plugs you pick (a garland, say) came on and went off, and today's weather in detail. A wall tablet opens it by itself the first time it wakes up in the morning, and it closes itself after a minute and a half. The CapsuleOS app now tells the page when the screen wakes.
+
 ## 0.4.2
 
 - **Doorbell pop-up.** When the Cameras card's doorbell sensor rings, its camera opens full screen on every screen and closes itself after a minute (**Close it after**; `?nobell` keeps a screen out). The CapsuleOS app lights a dark tablet for it.

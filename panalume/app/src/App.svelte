@@ -16,6 +16,7 @@
   import { reloadFromServer, startView } from './lib/config.svelte.js';
   import { lock, startHold, cancelHold, nudge } from './lib/childlock.svelte.js';
   import { isActive, name } from './lib/entity.js';
+  import { inMorning } from './lib/nightreport.js';
 
   let vw = $state(innerWidth);
   // The start screen stays up until the first connection to Home Assistant, so the
@@ -172,6 +173,18 @@
       clearTimeout(bellTimer);
       bellTimer = setTimeout(() => { if (app.popup?.bell) app.popup = null; }, Math.max(10, Number(c.props.bell_secs) || 60) * 1000);
     }
+  });
+
+  // Night report: the first time a dark wall tablet wakes up in the morning (someone walks
+  // past its camera or touches it), last night's report opens over the dashboard. Once a
+  // day per screen, and never over another pop-up such as the doorbell.
+  addEventListener('panalume-wake', () => {
+    const c = app.config && Object.values(app.config.cards).find((x) => x.type === 'night-report' && x.props?.popup !== false);
+    if (!c || app.editing || app.popup || !inMorning(c.props || {})) return;
+    const day = new Date().toDateString();
+    try { if (localStorage.getItem('capsuleos-report') === day) return; localStorage.setItem('capsuleos-report', day); } catch {}
+    app.popup = { report: c.id, auto: true };
+    lastTouch = Date.now();
   });
 
   // ?tv: the remote moves a highlight between cards and buttons; Back closes pop-ups and menus.

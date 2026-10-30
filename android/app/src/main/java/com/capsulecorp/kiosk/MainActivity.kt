@@ -259,6 +259,8 @@ class MainActivity : Activity() {
             setBrightness(WindowManager.LayoutParams.BRIGHTNESS_OVERRIDE_NONE)
             web.visibility = View.VISIBLE
             sleepCover.visibility = View.GONE
+            // The page may want to know (the morning's night report opens on the first wake).
+            web.evaluateJavascript("window.dispatchEvent(new Event('panalume-wake'))", null)
         }
         if (reschedule) scheduleSleep()
     }
