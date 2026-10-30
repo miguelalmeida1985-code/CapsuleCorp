@@ -24,6 +24,11 @@
     <Camera props={{ entity: app.popup.camera, name: app.popup.name, mode: 'live', fit: 'contain', show_name: true, sound: true, main: true }} w={vw} h={vh} />
     <button class="x" onclick={close} aria-label="Close"><Icon icon="mdi:close" size="1.5em" /></button>
   </div>
+{:else if app.popup?.report}
+  <!-- The night report loads only when it opens (most screens never show it). -->
+  {#await import('./NightReportPanel.svelte') then m}
+    <m.default props={app.config.cards[app.popup.report]?.props || {}} />
+  {/await}
 {:else if app.popup}
   <div class="back" role="presentation" onclick={(e) => e.target === e.currentTarget && close()}>
     <div class="pop" role="dialog" aria-modal="true">
