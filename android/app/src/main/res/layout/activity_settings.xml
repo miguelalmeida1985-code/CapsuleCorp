@@ -59,6 +59,12 @@
             android:visibility="gone" />
 
         <CheckBox
+            android:id="@+id/open_on_boot"
+            style="@style/Capsule.Check"
+            android:text="@string/open_on_boot_label" />
+        <TextView style="@style/Capsule.Help" android:text="@string/open_on_boot_help" />
+
+        <CheckBox
             android:id="@+id/motion_wake"
             style="@style/Capsule.Check"
             android:text="@string/motion_label" />

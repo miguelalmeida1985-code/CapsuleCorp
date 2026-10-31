@@ -52,11 +52,27 @@ class Prefs(private val context: Context) {
         set(v) = sp.edit().putBoolean("kiosk", v).apply()
 
     val isTv: Boolean
-        get() = when (mode) {
-            "tv" -> true
-            "tablet" -> false
-            else -> detectTv(context)
-        }
+        get() = isTv(mode)
+
+    /** Whether [m] ("auto", "tablet" or "tv") means a TV on this screen. */
+    fun isTv(m: String): Boolean = when (m) {
+        "tv" -> true
+        "tablet" -> false
+        else -> detectTv(context)
+    }
+
+    /**
+     * Open the dashboard when the screen boots. Until it is changed it follows the mode:
+     * on for a tablet, off for a TV, where CapsuleOS only opens when it is picked.
+     */
+    var openOnBoot: Boolean
+        get() = if (sp.contains("openOnBoot")) sp.getBoolean("openOnBoot", true) else !isTv
+        set(v) = sp.edit().putBoolean("openOnBoot", v).apply()
+
+    /** Back to following the mode. */
+    fun resetOpenOnBoot() = sp.edit().remove("openOnBoot").apply()
+
+    val openOnBootIsSet: Boolean get() = sp.contains("openOnBoot")
 
     /** The dashboard's address with this screen's options added. */
     fun dashboardUrl(): String = buildDashboardUrl(url, isTv, extra, BuildConfig.VERSION_NAME)

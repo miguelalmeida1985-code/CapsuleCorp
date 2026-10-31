@@ -28,6 +28,7 @@ class SettingsActivity : Activity() {
         val childLock = findViewById<CheckBox>(R.id.child_lock)
         val kiosk = findViewById<CheckBox>(R.id.kiosk)
         val motionWake = findViewById<CheckBox>(R.id.motion_wake)
+        val openOnBoot = findViewById<CheckBox>(R.id.open_on_boot)
         val sleepAfter = findViewById<EditText>(R.id.sleep_after)
         val owner = Kiosk.isOwner(this)
 
@@ -46,6 +47,19 @@ class SettingsActivity : Activity() {
         motionWake.isChecked = prefs.motionWake
         sleepAfter.setText(prefs.sleepAfter.toString())
         kiosk.isChecked = prefs.kiosk
+        openOnBoot.isChecked = prefs.openOnBoot
+
+        fun chosenMode() = when (mode.checkedRadioButtonId) {
+            R.id.mode_tablet -> "tablet"
+            R.id.mode_tv -> "tv"
+            else -> "auto"
+        }
+        // Until it is changed by hand, "Abrir ao ligar" follows the mode: on for a tablet, off for a TV.
+        var openOnBootTouched = prefs.openOnBootIsSet
+        openOnBoot.setOnClickListener { openOnBootTouched = true }
+        mode.setOnCheckedChangeListener { _, _ ->
+            if (!openOnBootTouched) openOnBoot.isChecked = !prefs.isTv(chosenMode())
+        }
         findViewById<TextView>(R.id.kiosk_help).setText(if (owner) R.string.kiosk_help_owner else R.string.kiosk_help_pinning)
 
         // Without a PIN, anyone who finds the corner taps can leave kiosk mode.
@@ -63,11 +77,8 @@ class SettingsActivity : Activity() {
 
         findViewById<Button>(R.id.save).setOnClickListener {
             prefs.url = url.text.toString()
-            prefs.mode = when (mode.checkedRadioButtonId) {
-                R.id.mode_tablet -> "tablet"
-                R.id.mode_tv -> "tv"
-                else -> "auto"
-            }
+            prefs.mode = chosenMode()
+            if (openOnBoot.isChecked == !prefs.isTv) prefs.resetOpenOnBoot() else prefs.openOnBoot = openOnBoot.isChecked
             prefs.extra = extra.text.toString()
             prefs.pin = pin.text.toString()
             prefs.childLock = childLock.isChecked

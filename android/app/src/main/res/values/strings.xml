@@ -15,6 +15,8 @@
     <string name="pin_label">PIN das definições</string>
     <string name="pin_help">Pedido para abrir estas definições. Deixe vazio para não pedir.</string>
     <string name="pin_warning">Com o modo kiosk ligado, defina um PIN: sem ele, qualquer pessoa que descubra os 5 toques pode sair da app.</string>
+    <string name="open_on_boot_label">Abrir ao ligar</string>
+    <string name="open_on_boot_help">Abre o painel quando o equipamento arranca. Ligado por defeito num tablet; desligado numa TV, onde a CapsuleOS só abre quando a escolhe.</string>
     <string name="motion_label">Acender o ecrã quando alguém se aproxima (câmara frontal)</string>
     <string name="motion_help">Compara uma imagem minúscula algumas vezes por segundo. Nada é gravado nem enviado. No escuro só o toque acende o ecrã.</string>
     <string name="sleep_label">Apagar o ecrã sem ninguém por perto ao fim de (segundos)</string>
