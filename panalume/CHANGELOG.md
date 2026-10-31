@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.5
+
+- **App: "Abrir ao ligar".** A new setting in the CapsuleOS app decides whether the dashboard opens by itself when the screen boots. It is on for a tablet and off for a TV, so a TV only opens CapsuleOS when you pick it (from the remote or the TV's launcher). Nothing changes on a tablet.
+
 ## 0.4.4
 
 - **Night report: weather fixes.** Hours with no rain chance (IPMA sends -99) no longer show "-99%", and hours before sunrise or after sunset show the moon instead of the sun.
