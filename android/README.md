@@ -66,7 +66,12 @@ To undo it: settings → **Remove Device Owner**.
 
 ## Updates
 
-Install the new APK over the old one (`adb install -r …`). That only works when
+From 0.4.7 the app updates itself: when the dashboard (the Home Assistant app) is
+newer, a notification offers the update, and a tap downloads that version's APK
+from the GitHub release (or `/local/capsuleos.apk` in Home Assistant) into Android's
+installer. The first time, allow notifications and "install unknown apps" for CapsuleOS.
+
+Or install the new APK over the old one (`adb install -r …`). Either way only works when
 both are signed with the same key, so add these repository secrets once
 (Settings → Secrets and variables → Actions):
 
