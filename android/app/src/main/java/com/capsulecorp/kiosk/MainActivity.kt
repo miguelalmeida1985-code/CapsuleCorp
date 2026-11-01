@@ -5,6 +5,7 @@ import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.AlertDialog
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.Bitmap
 import android.graphics.Color
 import android.os.Build
@@ -91,6 +92,7 @@ class MainActivity : Activity() {
 
         // First run: nothing to show until the dashboard's address is set.
         if (prefs.url.isBlank()) openSettings()
+        handleUpdate(intent)
     }
 
     override fun onResume() {
@@ -110,12 +112,14 @@ class MainActivity : Activity() {
         // Kiosk mode is for the tablet; a TV keeps its own launcher and Home button.
         if (prefs.url.isNotBlank()) Kiosk.apply(this, prefs.kiosk && !tv)
         startPresence()
+        Updater.resume(this, prefs.dashboardUrl())
     }
 
     // A TV launcher can open the app from a remote button with EXTRA_TOGGLE: the same button
     // pressed again puts the dashboard away and whatever was underneath (HDMI, Live TV) comes back.
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
+        if (handleUpdate(intent)) return
         if (inFront && prefs.isTv && intent.getBooleanExtra(EXTRA_TOGGLE, false)) moveTaskToBack(true)
     }
 
@@ -231,6 +235,33 @@ class MainActivity : Activity() {
     override fun onRequestPermissionsResult(requestCode: Int, permissions: Array<out String>, grantResults: IntArray) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults)
         if (requestCode == CAMERA_REQUEST && motion.hasPermission() && prefs.motionWake) motion.start()
+        if (requestCode == NOTIFY_REQUEST) pendingUpdate?.let { Updater.offer(this, it) }
+    }
+
+    // Updates: the page tells us when the dashboard is newer than this app; the notification
+    // it leads to comes back here when tapped.
+    private var pendingUpdate: String? = null
+    private var askedNotify = false
+
+    private fun offerUpdate(version: String) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU &&
+            checkSelfPermission(Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+            pendingUpdate = version
+            if (!askedNotify) {
+                askedNotify = true
+                requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), NOTIFY_REQUEST)
+            }
+            return
+        }
+        Updater.offer(this, version)
+    }
+
+    private fun handleUpdate(intent: Intent?): Boolean {
+        if (intent?.action != Updater.ACTION_INSTALL) return false
+        val version = intent.getStringExtra(Updater.EXTRA_VERSION) ?: return true
+        intent.action = null
+        Updater.install(this, version, prefs.dashboardUrl())
+        return true
     }
 
     /** Someone is here: a touch, a key or movement in front of the camera. */
@@ -265,11 +296,17 @@ class MainActivity : Activity() {
         if (reschedule) scheduleSleep()
     }
 
-    /** What the page may ask of the app: only to light the screen (the doorbell rang). */
+    /** What the page may ask of the app: to light the screen (the doorbell rang) and to offer an update. */
     private inner class Bridge {
         @JavascriptInterface
         fun wake() {
             handler.post { this@MainActivity.wake() }
+        }
+
+        /** The dashboard runs [version], newer than this app: offer the update. */
+        @JavascriptInterface
+        fun update(version: String) {
+            handler.post { offerUpdate(version) }
         }
     }
 
@@ -381,5 +418,6 @@ class MainActivity : Activity() {
         const val EXTRA_TOGGLE = "toggle"
         private const val RETRY_MS = 10_000L
         private const val CAMERA_REQUEST = 1
+        private const val NOTIFY_REQUEST = 2
     }
 }

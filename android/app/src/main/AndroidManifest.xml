@@ -5,6 +5,9 @@
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <!-- Front camera, only to notice someone in front of the tablet and light the screen. -->
     <uses-permission android:name="android.permission.CAMERA" />
+    <!-- Updates from a notification: download the new APK into Android's installer. -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
 
     <!-- One APK for the tablet (touch) and the TV (remote). -->
     <uses-feature android:name="android.hardware.touchscreen" android:required="false" />
@@ -59,8 +62,13 @@
             android:exported="true">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
+                <action android:name="android.intent.action.MY_PACKAGE_REPLACED" />
             </intent-filter>
         </receiver>
+
+        <receiver
+            android:name=".Updater$InstallReceiver"
+            android:exported="false" />
 
         <!-- Device Owner: set once over ADB for full kiosk mode (see android/README.md). -->
         <receiver
