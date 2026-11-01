@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.6
+
+- **Night report: the detections' pictures.** Each camera shows its detections' pictures from Frigate; a tap opens one big, the way the notification shows it, with the person boxed, and arrows go through the night's others. CapsuleOS finds the Frigate app by itself (or set **Frigate address**).
+
 ## 0.4.5
 
 - **App: "Abrir ao ligar".** A new setting in the CapsuleOS app decides whether the dashboard opens by itself when the screen boots. It is on for a tablet and off for a TV, so a TV only opens CapsuleOS when you pick it (from the remote or the TV's launcher). Nothing changes on a tablet.

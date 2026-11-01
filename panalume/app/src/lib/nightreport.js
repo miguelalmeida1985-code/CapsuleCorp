@@ -74,7 +74,24 @@ function spans(points = [], start, end) {
   return out;
 }
 
-/** Last night, from "night from" until now: { start, end, people: [{ id, name, spans, pic }], watch: [{ id, name, spans }] }. */
+/** Frigate's person detections in the night, by the camera's person sensor:
+ *  { 'binary_sensor.<camera>_person_occupancy': [{ id, at }] }. Empty when Frigate can't be reached. */
+async function detections(start, end) {
+  try {
+    const r = await fetch(`api/frigate/events?after=${Math.floor(start / 1000)}&before=${Math.ceil(end / 1000)}`);
+    if (!r.ok) return {};
+    const out = {};
+    for (const e of await r.json()) {
+      const id = `binary_sensor.${String(e.camera).toLowerCase().replace(/[^a-z0-9]+/g, '_')}_person_occupancy`;
+      (out[id] ||= []).push({ id: e.id, at: e.start * 1000 });
+    }
+    return out;
+  } catch {
+    return {};
+  }
+}
+
+/** Last night, from "night from" until now: { start, end, people: [{ id, name, spans, pic, shots }], watch: [{ id, name, spans }] }. */
 export async function loadNight(props, now = new Date()) {
   const start = nightStart(props, now).getTime(), end = now.getTime();
   const list = (v) => (Array.isArray(v) ? v : []).filter(Boolean);
@@ -90,11 +107,12 @@ export async function loadNight(props, now = new Date()) {
     significant_changes_only: false,
     include_start_time_state: true,
   }) : {};
+  const shots = await detections(start, end);
   const people = found.people.map((x) => {
     const s = spans(hist[x.id], start, end);
     // The snapshot only if Frigate took it last night (not one from days ago).
     const at = Date.parse(x.at);
-    return { id: x.id, name: x.name, spans: s, pic: s.length && at >= start && at <= end + 60e3 ? x.pic : '' };
+    return { id: x.id, name: x.name, spans: s, pic: s.length && at >= start && at <= end + 60e3 ? x.pic : '', shots: shots[x.id] || [] };
   });
   const watch = found.watch.map((x) => ({ id: x.id, name: x.name, spans: spans(hist[x.id], start, end) }));
   return { start, end, people, watch };

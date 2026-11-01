@@ -145,6 +145,27 @@ const server = http.createServer(async (req, res) => {
     if (p === '/api/fusion') {
       return send(res, 200, JSON.stringify(await fusionDashboard({ sup: SUP, haUrl: HA_URL, token: TOKEN })));
     }
+    if (p === '/api/frigate/events') {
+      // Person detections between two times: [{ id, camera, start, end }], newest last.
+      const base = await frigate();
+      if (!base) return send(res, 404, '{"error":"Frigate not found"}');
+      const q = new URLSearchParams({ labels: 'person', has_snapshot: '1', limit: '200' });
+      for (const k of ['after', 'before']) { const v = Number(url.searchParams.get(k)); if (v > 0) q.set(k, String(v)); }
+      const r = await fetch(`${base}/api/events?${q}`, { signal: AbortSignal.timeout(8000) });
+      if (!r.ok) return send(res, 502, '{"error":"Frigate refused"}');
+      const list = (await r.json()).map((e) => ({ id: e.id, camera: e.camera, start: e.start_time, end: e.end_time })).sort((a, b) => a.start - b.start);
+      return send(res, 200, JSON.stringify(list));
+    }
+    const snap = /^\/api\/frigate\/(snapshot|thumbnail)\/([\w.-]+)$/.exec(p);
+    if (snap) {
+      // A detection's picture: the full snapshot with the person boxed, or its small thumbnail.
+      const base = await frigate();
+      if (!base) return send(res, 404, '{"error":"Frigate not found"}');
+      const r = await fetch(`${base}/api/events/${snap[2]}/${snap[1] === 'snapshot' ? 'snapshot.jpg?bbox=1' : 'thumbnail.jpg'}`, { signal: AbortSignal.timeout(10000) });
+      if (!r.ok) return send(res, r.status === 404 ? 404 : 502, '{"error":"No picture"}');
+      res.writeHead(200, { 'Content-Type': r.headers.get('content-type') || 'image/jpeg', 'Cache-Control': 'private, max-age=86400' });
+      return res.end(Buffer.from(await r.arrayBuffer()));
+    }
     if (p.startsWith('/ha/')) {
       // Proxy HA image endpoints (camera_proxy, media_player_proxy, local files).
       // Signed media links (/media/…?authSig=, e.g. photos from local media) carry
@@ -193,6 +214,27 @@ setInterval(() => broadcast({ type: 'ping' }), 30000);
 // everything else (streams freeze, switching camera never loads).
 const cams = new WebSocketServer({ noServer: true });
 const SOI = Buffer.from([0xff, 0xd8]), EOI = Buffer.from([0xff, 0xd9]);
+// Frigate's own API, for the night report's detections and their snapshots (with the
+// person boxed). Frigate's internal port 5000 needs no login; in the add-on it's found
+// through the Supervisor (the Frigate app's hostname), or set frigate_url.
+let frigateBase;
+async function frigate() {
+  if (frigateBase !== undefined) return frigateBase;
+  const set = String(OPTIONS.frigate_url || process.env.FRIGATE_URL || '').replace(/\/$/, '');
+  if (set) return (frigateBase = set);
+  if (!SUP) return (frigateBase = null);
+  try {
+    const list = (await (await fetch('http://supervisor/addons', { headers: { Authorization: `Bearer ${SUP}` } })).json()).data?.addons || [];
+    const a = list.find((x) => /frigate/i.test(x.slug) && x.state === 'started');
+    frigateBase = a ? `http://${a.slug.replace(/_/g, '-')}:5000` : null;
+  } catch {
+    frigateBase = null;
+  }
+  // Not found yet (e.g. Frigate still starting): look again in a minute.
+  if (!frigateBase) setTimeout(() => { if (!frigateBase) frigateBase = undefined; }, 60e3);
+  return frigateBase;
+}
+
 // The Supervisor's proxy buffers whole responses, so a never-ending MJPEG stream
 // never arrives through it. In the add-on, open streams on Core directly using
 // the camera's own access token; if that fails, poll snapshots instead.
