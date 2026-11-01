@@ -21,6 +21,13 @@
   // Closing by itself: a bar along the bottom shows the time left; touching the report stops it.
   const secs = Math.max(10, Number(props.secs) || REPORT_DEFAULTS.secs);
   let held = $state(false);
+  // A detection's picture, big: { shots: [{ src, at }], i, name }.
+  let viewer = $state(null);
+  const pictures = (x) => x.shots.length
+    ? x.shots.map((d) => ({ src: `api/frigate/snapshot/${d.id}`, thumb: `api/frigate/thumbnail/${d.id}`, at: d.at }))
+    : x.pic ? [{ src: haImage(x.pic), thumb: haImage(x.pic), at: x.spans.at(-1)?.[0] }] : [];
+  const show = (x, i) => { held = true; viewer = { shots: pictures(x), i, name: x.name }; };
+  const step = (d) => { if (viewer) viewer.i = (viewer.i + d + viewer.shots.length) % viewer.shots.length; };
   $effect(() => {
     if (held) return;
     const t = setTimeout(close, secs * 1000);
@@ -132,7 +139,16 @@
                 <div class="lbl">
                   <span class="ic"><Icon icon={x.spans.length ? 'mdi:walk' : 'mdi:cctv'} size="1.05em" /></span>
                   <span class="nm"><b>{x.name}</b><small>{peopleText(x)}</small></span>
-                  {#if x.pic}<img class="pic" src={haImage(x.pic)} alt="" />{/if}
+                  {#if x.spans.length}
+                    {@const pics = pictures(x)}
+                    <span class="pics">
+                      {#each pics.slice(-3) as p, j}
+                        {@const i = pics.length - Math.min(3, pics.length) + j}
+                        <button class="pic" onclick={() => show(x, i)} aria-label={`${x.name} ${p.at ? clock(p.at) : ''}`}><img src={p.thumb} alt="" loading="lazy" /></button>
+                      {/each}
+                      {#if pics.length > 3}<button class="more" onclick={() => show(x, 0)}>+{pics.length - 3}</button>{/if}
+                    </span>
+                  {/if}
                 </div>
                 <div class="track">{#each x.spans as s}<i class="dot" style="left:{pos(s[0])}%"></i>{/each}</div>
               </div>
@@ -190,6 +206,20 @@
 
     {#if !held}<div class="timer" style="animation-duration:{secs}s"></div>{/if}
   </div>
+  {#if viewer}
+    {@const p = viewer.shots[viewer.i]}
+    <div class="viewer" role="dialog" aria-modal="true" onclick={(e) => e.target === e.currentTarget && (viewer = null)} onkeydown={(e) => e.key === 'ArrowLeft' ? step(-1) : e.key === 'ArrowRight' && step(1)} tabindex="-1">
+      <figure>
+        <img src={p.src} alt="" />
+        <figcaption><Icon icon="mdi:walk" size="1.1em" /> <b>{viewer.name}</b>{#if p.at}<span>{clock(p.at)}</span>{/if}{#if viewer.shots.length > 1}<small>{viewer.i + 1} / {viewer.shots.length}</small>{/if}</figcaption>
+      </figure>
+      {#if viewer.shots.length > 1}
+        <button class="nav prev" onclick={() => step(-1)} aria-label={say('Previous', 'Anterior')}><Icon icon="mdi:chevron-left" size="2em" /></button>
+        <button class="nav next" onclick={() => step(1)} aria-label={say('Next', 'Seguinte')}><Icon icon="mdi:chevron-right" size="2em" /></button>
+      {/if}
+      <button class="x" onclick={() => (viewer = null)} aria-label={say('Back to the report', 'Voltar ao relatório')}><Icon icon="mdi:close" size="1.4em" /></button>
+    </div>
+  {/if}
 </div>
 
 <style>
@@ -226,7 +256,22 @@
   .nm { flex: 1; min-width: 0; display: flex; flex-direction: column; }
   .nm b { font-weight: 600; }
   .nm small { color: var(--muted); font-size: .85em; font-variant-numeric: tabular-nums; }
-  .pic { flex: none; width: 72px; height: 42px; object-fit: cover; border-radius: 8px; box-shadow: 0 0 0 1px rgba(255,255,255,.15), 0 6px 14px -6px rgba(0,0,0,.8); }
+  .pics { flex: none; display: flex; gap: 6px; }
+  .pic, .more { flex: none; width: 72px; height: 42px; padding: 0; border: 0; border-radius: 8px; overflow: hidden; background: rgba(255,255,255,.06); color: inherit; font: inherit; font-weight: 600;
+    box-shadow: 0 0 0 1px rgba(255,255,255,.15), 0 6px 14px -6px rgba(0,0,0,.8); cursor: pointer; }
+  .more { width: 42px; }
+  .pic img { width: 100%; height: 100%; object-fit: cover; display: block; }
+  .pic:active, .more:active { transform: scale(.96); }
+  /* A detection's picture over the report: Frigate's snapshot with the person boxed. */
+  .viewer { position: fixed; inset: 0; z-index: 2; display: grid; place-items: center; padding: 24px 80px; background: rgba(2,4,10,.82); animation: fade .2s ease; }
+  .viewer figure { margin: 0; display: flex; flex-direction: column; align-items: center; gap: 12px; max-width: 100%; max-height: 100%; }
+  .viewer img { max-width: 100%; max-height: calc(100dvh - 110px); border-radius: 18px; box-shadow: 0 30px 80px -10px rgba(0,0,0,.8), 0 0 0 1px rgba(255,255,255,.12); background: #000; }
+  figcaption { display: flex; align-items: center; gap: 10px; font-size: 1.05em; }
+  figcaption span { color: var(--sun); font-variant-numeric: tabular-nums; font-weight: 600; }
+  figcaption small { color: var(--muted); }
+  .nav { position: absolute; top: 50%; transform: translateY(-50%); width: 56px; height: 56px; border-radius: 50%; border: 1px solid rgba(255,255,255,.14); background: rgba(255,255,255,.08); color: inherit; display: grid; place-items: center; }
+  .prev { left: 14px; }
+  .next { right: 14px; }
   .track { position: relative; height: 8px; margin-left: 42px; border-radius: 4px; background: rgba(255,255,255,.06); }
   .dot { position: absolute; top: 50%; width: 10px; height: 10px; margin: -5px 0 0 -5px; border-radius: 50%; background: var(--sun); box-shadow: 0 0 10px var(--sun); }
   .bar { position: absolute; top: 0; bottom: 0; border-radius: 4px; background: linear-gradient(90deg, #ffcf6b, #ffe7a8); box-shadow: 0 0 12px rgba(255,207,107,.8); }

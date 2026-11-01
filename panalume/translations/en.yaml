@@ -5,5 +5,8 @@ configuration:
   direct_edit:
     name: Allow editing on the direct port
     description: The direct port has no Home Assistant login, so by default it can show the dashboard but not change it. Edit from Home Assistant instead, or turn this on.
+  frigate_url:
+    name: Frigate address
+    description: Only if CapsuleOS can't find the Frigate app by itself, e.g. http://frigate-host:5000. Used by the night report for each detection's picture.
 network:
   8099/tcp: Direct access (optional, e.g. for a wall tablet or TV)

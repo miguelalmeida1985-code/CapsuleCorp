@@ -1,5 +1,5 @@
 name: CapsuleOS
-version: "0.4.5"
+version: "0.4.6"
 slug: capsuleos
 description: CapsuleOS, the Capsule Corp home dashboard (a Panalume fork)
 url: https://github.com/miguelalmeida1985-code/CapsuleCorp
@@ -21,6 +21,8 @@ ports_description:
 options:
   direct_key: ""
   direct_edit: false
+  frigate_url: ""
 schema:
   direct_key: password?
   direct_edit: bool
+  frigate_url: str?
