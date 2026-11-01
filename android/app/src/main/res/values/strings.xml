@@ -36,6 +36,12 @@
     <string name="ok">OK</string>
     <string name="cancel">Cancelar</string>
 
+    <string name="update_channel">Atualizações</string>
+    <string name="update_title">CapsuleOS %1$s disponível</string>
+    <string name="update_text">Toque para atualizar a app</string>
+    <string name="update_downloading">A descarregar a CapsuleOS %1$s…</string>
+    <string name="update_failed">A atualização não foi feita</string>
+
     <string name="offline">Sem ligação ao CapsuleOS. A tentar de novo…</string>
     <string name="lock_hint">Mantenha o cadeado pressionado para desbloquear</string>
     <string name="lock_desc">Bloqueio para criança</string>

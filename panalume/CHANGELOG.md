@@ -1,5 +1,9 @@
 # Changelog
 
+## 0.4.7
+
+- **Tablet / TV app updates itself from a notification.** When the dashboard is newer than the app, the app shows a notification; a tap downloads that version's APK (from the GitHub release, or the copy in Home Assistant at `/local/capsuleos.apk`) straight into Android's installer, which asks to install. Nothing is left behind in Downloads. The first time, Android asks to allow notifications and to let CapsuleOS install apps. Works from this version of the app on, so install 0.4.7 by hand once.
+
 ## 0.4.6
 
 - **Night report: the detections' pictures.** Each camera shows its detections' pictures from Frigate; a tap opens one big, the way the notification shows it, with the person boxed, and arrows go through the night's others. CapsuleOS finds the Frigate app by itself (or set **Frigate address**).

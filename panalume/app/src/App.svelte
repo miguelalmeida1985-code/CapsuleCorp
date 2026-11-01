@@ -208,6 +208,9 @@
   const version = __APP_VERSION__;
   const shellVersion = param('app_version');
   const showVersion = param('noversion') == null;
+  // A kiosk app older than this dashboard offers its own update (a notification on the tablet).
+  const newer = (a, b) => { const x = a.split('.').map(Number), y = b.split('.').map(Number); for (let i = 0; i < 3; i++) if ((x[i] || 0) !== (y[i] || 0)) return (x[i] || 0) > (y[i] || 0); return false; };
+  if (shellVersion && newer(version, shellVersion)) { try { window.CapsuleKiosk?.update?.(version); } catch {} }
   let serverVersion = $state(version);
   const behind = $derived(!!serverVersion && serverVersion !== version);
   connectLive({ onConfig: reloadFromServer, canReload: () => !app.editing && !app.dirty, onVersion: (v) => (serverVersion = v) });
